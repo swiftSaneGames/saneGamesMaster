@@ -1,0 +1,3 @@
+reference,game_id,platform,metric,displayed_band,lower_bound,period,geographic_scope,observed_on,source_url,limitation
+Pizza Ready,G001,Google Play,public_install_band,10Cr+,100000000,lifetime,not_country_specific,2026-10-03,https://play.google.com/store/apps/details?id=io.supercent.pizzaidle&hl=en_IN,Retrieved listing snapshot; threshold not exact downloads; not a monthly rank
+Idle Bank Tycoon,G021,Google Play,public_install_band,1Cr+,10000000,lifetime,not_country_specific,2026-10-03,https://play.google.com/store/apps/details?id=com.luckyskeletonstudios.idlebanktycoon&hl=en_IN,Retrieved listing snapshot; threshold not exact downloads; not a monthly rank
