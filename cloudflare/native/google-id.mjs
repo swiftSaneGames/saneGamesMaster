@@ -39,7 +39,7 @@ export function createGoogleID(providerFetch) {
   async function keys(force = false) {
     if (!force && cachedKeys && Date.now() < validUntil) return cachedKeys;
     const response = await providerFetch('https://www.googleapis.com/oauth2/v3/certs', {
-      signal: AbortSignal.timeout(10000), redirect: 'error'
+      signal: AbortSignal.timeout(10000), redirect: 'manual'
     });
     requireThat(response.ok, 'Google signing keys are temporarily unavailable', 502);
     const value = await response.json();

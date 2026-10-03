@@ -27,7 +27,7 @@ export function createHandler(providerFetch = (...args) => fetch(...args)) {
   let keyCache = null, keysUntil = 0;
   async function keys(force = false) {
     if (!force && keyCache && keysUntil > Date.now()) return keyCache;
-    const r = await providerFetch('https://www.googleapis.com/oauth2/v3/certs', { signal: AbortSignal.timeout(10000), redirect: 'error' });
+    const r = await providerFetch('https://www.googleapis.com/oauth2/v3/certs', { signal: AbortSignal.timeout(10000), redirect: 'manual' });
     requireThat(r.ok, 'Google signing keys are unavailable', 502);
     const value = await r.json(); requireThat(Array.isArray(value.keys) && value.keys.length <= 10, 'Invalid Google keys', 502);
     keyCache = value; keysUntil = Date.now() + 3600000; return value;
@@ -68,7 +68,7 @@ export function createHandler(providerFetch = (...args) => fetch(...args)) {
           const state = url.searchParams.get('state'), code = url.searchParams.get('code');
           requireThat(state && code && state.length <= 200 && code.length <= 2000 && equal(state, jar[OAUTH]), 'Invalid sign-in state', 403);
           const pending = await call(env, 'oauth_take', { id: await sha256(state) });
-          const r = await providerFetch('https://oauth2.googleapis.com/token', { method: 'POST', signal: AbortSignal.timeout(10000), redirect: 'error', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams({ client_id: env.GOOGLE_CLIENT_ID, client_secret: env.GOOGLE_CLIENT_SECRET, code, grant_type: 'authorization_code', redirect_uri: appOrigin + '/auth/google/callback', code_verifier: pending.verifier }) });
+          const r = await providerFetch('https://oauth2.googleapis.com/token', { method: 'POST', signal: AbortSignal.timeout(10000), redirect: 'manual', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams({ client_id: env.GOOGLE_CLIENT_ID, client_secret: env.GOOGLE_CLIENT_SECRET, code, grant_type: 'authorization_code', redirect_uri: appOrigin + '/auth/google/callback', code_verifier: pending.verifier }) });
           requireThat(r.ok, 'Google token exchange failed', 403);
           const tokens = await r.json(); let jwks = await keys();
           let user;

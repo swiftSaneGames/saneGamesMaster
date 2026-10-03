@@ -10,7 +10,7 @@ import { createRequire } from 'node:module';
 import { webcrypto } from 'node:crypto';
 const root = path.resolve(import.meta.dirname, '../..');
 const tools = createRequire(path.join(root, 'node_modules/wrangler/package.json'));
-const { Miniflare } = tools('miniflare');
+const { Miniflare, convertV4MiniflareOptions } = tools('miniflare');
 const { build } = tools('esbuild');
 const config = JSON.parse(await fs.readFile(path.join(root, 'wrangler.jsonc'), 'utf8'));
 const origin = 'https://runtime-test.example';
@@ -45,7 +45,7 @@ const provider = request => {
 };
 let runtime;
 async function start() {
-  runtime = new Miniflare({
+  runtime = new Miniflare(convertV4MiniflareOptions({
     name: 'sanegames-runtime-test', modules: true, script: compiled.outputFiles[0].text,
     compatibilityDate: config.compatibility_date,
     compatibilityFlags: config.compatibility_flags || [],
@@ -59,7 +59,7 @@ async function start() {
       try { return new Response(await fs.readFile(filename), { headers: { 'Content-Type': filename.endsWith('.html') ? 'text/html' : 'text/plain' } }); }
       catch { return new Response('Not found', { status: 404 }); }
     } }
-  });
+  }));
   await runtime.ready;
 }
 const dispatch = (route, init = {}) => runtime.dispatchFetch(origin + route, { redirect: 'manual', ...init });
