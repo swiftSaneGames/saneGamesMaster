@@ -29,7 +29,7 @@ jobs:
         with:
           node-version-file: '.node-version'
       - name: Unit regression
-        run: npm test
+        run: npm run build && node --test --test-reporter=spec tests/native/*.test.mjs
       - name: Install pinned runtime tools for tests only
         run: npm install --no-save --package-lock=false wrangler@4.147.0
       - name: Exercise real Worker and SQLite runtime with disposable identities

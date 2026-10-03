@@ -51,7 +51,7 @@ async function start() {
     compatibilityFlags: config.compatibility_flags || [],
     bindings: { APP_ORIGIN: origin, ALLOWED_EMAILS: emails.join(','), GOOGLE_CLIENT_ID: client },
     durableObjects: { STUDIO: { className: 'StudioStore', useSQLite: true } },
-    durableObjectsPersist: path.join(temp, 'storage'), outboundService: provider, cf: false,
+    resourcePersistencePath: path.join(temp, 'storage'), outboundService: provider, cf: false,
     serviceBindings: { ASSETS: async request => {
       const filename = path.resolve(root, 'cloudflare/public', '.' + new URL(request.url).pathname);
       const assets = path.join(root, 'cloudflare/public') + path.sep;
