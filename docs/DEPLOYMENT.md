@@ -1,5 +1,7 @@
 # Deployment preparation: prod.sanegames.swiftsane.com
 
+> Historical reference: this document describes the legacy Python/Mac-origin application or its test checkpoint. The active entrypoint is `cloudflare/native/entry.mjs`. Use [the current hosted guide](HOSTED_DASHBOARD.md) and `docs/HOSTED_TESTING.md` for current operations. Do not apply old Wrangler, hostname, OAuth or process settings to the native deployment.
+
 **Status: not deployed.** No DNS record, TLS certificate, public route, service account or OAuth application has been created by this checkpoint.
 
 ## Cloudflare deployment path
@@ -47,3 +49,4 @@ Run `bash scripts/run_production.sh` only after the environment and reverse prox
 ## Rollback and recovery
 
 Retain the previously tested source commit and a verified private database snapshot. Use `scripts/backup.py` for a consistent SQLite backup; it removes active sessions and OAuth state from the backup. Test restoration separately, reauthenticate after restoration, and reconcile outstanding candidates before enabling writes. Never commit a backup or share one in the public repository.
+

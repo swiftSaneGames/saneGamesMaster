@@ -1,5 +1,7 @@
 # Dashboard verification record
 
+> Historical reference: this document describes the legacy Python/Mac-origin application or its test checkpoint. The active entrypoint is `cloudflare/native/entry.mjs`. Use [the current hosted guide](HOSTED_DASHBOARD.md) and `docs/HOSTED_TESTING.md` for current operations. Do not apply old Wrangler, hostname, OAuth or process settings to the native deployment.
+
 ## Backend
 
 Command: `python -m pytest -q`.
@@ -23,3 +25,4 @@ Validate real owner sign-in and unauthorized accounts; account two-factor behavi
 ## Before store automation
 
 Implement a publisher that rechecks current owner approval and recomputes artifact hashes. Test revoked/superseded approvals, concurrent submissions, network retries, store rejection, post-approval artifact replacement and signing identity. Store publishing is currently absent, not mocked as successful.
+

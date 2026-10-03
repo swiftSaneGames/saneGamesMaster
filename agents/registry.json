@@ -1,0 +1,447 @@
+{
+  "schema_version": 1,
+  "entrypoint": "prom.md",
+  "shared_contract": "agents/COMMON.md",
+  "dispatch": "coordinator-dispatched",
+  "roles": [
+    {
+      "id": "studio-director",
+      "parent": null,
+      "dashboard_role": "producer",
+      "description": "Coordinate studio work, continuity, quality gates and accountable handoffs.",
+      "prompt": "agents/studio-director/prom.md",
+      "definition": ".claude/agents/studio-director.md",
+      "tools": [
+        "Read",
+        "Glob",
+        "Grep",
+        "Write",
+        "Edit",
+        "Bash",
+        "Agent"
+      ]
+    },
+    {
+      "id": "studio-researcher",
+      "parent": "studio-director",
+      "dashboard_role": "researcher",
+      "description": "Lead evidence-based reference research and source reconciliation.",
+      "prompt": "agents/studio-researcher/prom.md",
+      "definition": ".claude/agents/studio-researcher.md",
+      "tools": [
+        "Read",
+        "Glob",
+        "Grep",
+        "WebSearch",
+        "WebFetch"
+      ]
+    },
+    {
+      "id": "reference-player",
+      "parent": "studio-researcher",
+      "dashboard_role": "researcher",
+      "description": "Observe reference gameplay and distinguish direct play, recordings and inference.",
+      "prompt": "agents/reference-player/prom.md",
+      "definition": ".claude/agents/reference-player.md",
+      "tools": [
+        "Read",
+        "Glob",
+        "Grep",
+        "WebSearch",
+        "WebFetch"
+      ]
+    },
+    {
+      "id": "market-analyst",
+      "parent": "studio-researcher",
+      "dashboard_role": "researcher",
+      "description": "Assess sourced demand and research priorities without inventing rankings.",
+      "prompt": "agents/market-analyst/prom.md",
+      "definition": ".claude/agents/market-analyst.md",
+      "tools": [
+        "Read",
+        "Glob",
+        "Grep",
+        "WebSearch",
+        "WebFetch"
+      ]
+    },
+    {
+      "id": "studio-designer",
+      "parent": "studio-director",
+      "dashboard_role": "designer",
+      "description": "Design an original game loop, audience, interaction and progression.",
+      "prompt": "agents/studio-designer/prom.md",
+      "definition": ".claude/agents/studio-designer.md",
+      "tools": [
+        "Read",
+        "Glob",
+        "Grep",
+        "Write",
+        "Edit"
+      ]
+    },
+    {
+      "id": "economy-designer",
+      "parent": "studio-designer",
+      "dashboard_role": "designer",
+      "description": "Specify balanced currencies, upgrades, offline rewards and ad incentives.",
+      "prompt": "agents/economy-designer/prom.md",
+      "definition": ".claude/agents/economy-designer.md",
+      "tools": [
+        "Read",
+        "Glob",
+        "Grep",
+        "Write",
+        "Edit"
+      ]
+    },
+    {
+      "id": "content-designer",
+      "parent": "studio-designer",
+      "dashboard_role": "designer",
+      "description": "Author original locations, events, progression and reachable content paths.",
+      "prompt": "agents/content-designer/prom.md",
+      "definition": ".claude/agents/content-designer.md",
+      "tools": [
+        "Read",
+        "Glob",
+        "Grep",
+        "Write",
+        "Edit"
+      ]
+    },
+    {
+      "id": "studio-architect",
+      "parent": "studio-director",
+      "dashboard_role": "architect",
+      "description": "Design testable components and validate cross-platform technical choices.",
+      "prompt": "agents/studio-architect/prom.md",
+      "definition": ".claude/agents/studio-architect.md",
+      "tools": [
+        "Read",
+        "Glob",
+        "Grep",
+        "Write",
+        "Edit"
+      ]
+    },
+    {
+      "id": "platform-engineer",
+      "parent": "studio-architect",
+      "dashboard_role": "architect",
+      "description": "Validate mobile exports, native adapters, permissions and lifecycle behavior.",
+      "prompt": "agents/platform-engineer/prom.md",
+      "definition": ".claude/agents/platform-engineer.md",
+      "tools": [
+        "Read",
+        "Glob",
+        "Grep",
+        "Write",
+        "Edit",
+        "Bash"
+      ]
+    },
+    {
+      "id": "security-reviewer",
+      "parent": "studio-architect",
+      "dashboard_role": "architect",
+      "description": "Review studio-owned code, dependencies, privacy and trust boundaries.",
+      "prompt": "agents/security-reviewer/prom.md",
+      "definition": ".claude/agents/security-reviewer.md",
+      "tools": [
+        "Read",
+        "Glob",
+        "Grep",
+        "Bash"
+      ]
+    },
+    {
+      "id": "studio-producer",
+      "parent": "studio-director",
+      "dashboard_role": "producer",
+      "description": "Create measurable tasks, dependencies, capacity plans and rework loops.",
+      "prompt": "agents/studio-producer/prom.md",
+      "definition": ".claude/agents/studio-producer.md",
+      "tools": [
+        "Read",
+        "Glob",
+        "Grep",
+        "Write",
+        "Edit"
+      ]
+    },
+    {
+      "id": "repository-bootstrapper",
+      "parent": "studio-producer",
+      "dashboard_role": "producer",
+      "description": "Prepare one authorized private game repository with repeatable setup.",
+      "prompt": "agents/repository-bootstrapper/prom.md",
+      "definition": ".claude/agents/repository-bootstrapper.md",
+      "tools": [
+        "Read",
+        "Glob",
+        "Grep",
+        "Write",
+        "Edit",
+        "Bash"
+      ]
+    },
+    {
+      "id": "integration-writer",
+      "parent": "studio-producer",
+      "dashboard_role": "producer",
+      "description": "Serialize reviewed, tested non-force integration directly to main.",
+      "prompt": "agents/integration-writer/prom.md",
+      "definition": ".claude/agents/integration-writer.md",
+      "tools": [
+        "Read",
+        "Glob",
+        "Grep",
+        "Write",
+        "Edit",
+        "Bash"
+      ]
+    },
+    {
+      "id": "studio-developer",
+      "parent": "studio-director",
+      "dashboard_role": "developer",
+      "description": "Implement bounded issues, integrate specialists and produce reproducible evidence.",
+      "prompt": "agents/studio-developer/prom.md",
+      "definition": ".claude/agents/studio-developer.md",
+      "tools": [
+        "Read",
+        "Glob",
+        "Grep",
+        "Write",
+        "Edit",
+        "Bash"
+      ]
+    },
+    {
+      "id": "gameplay-engineer",
+      "parent": "studio-developer",
+      "dashboard_role": "developer",
+      "description": "Build responsive gameplay, deterministic simulation and progression behavior.",
+      "prompt": "agents/gameplay-engineer/prom.md",
+      "definition": ".claude/agents/gameplay-engineer.md",
+      "tools": [
+        "Read",
+        "Glob",
+        "Grep",
+        "Write",
+        "Edit",
+        "Bash"
+      ]
+    },
+    {
+      "id": "save-systems-engineer",
+      "parent": "studio-developer",
+      "dashboard_role": "developer",
+      "description": "Implement versioned saves, migrations, recovery and duplicate-reward protection.",
+      "prompt": "agents/save-systems-engineer/prom.md",
+      "definition": ".claude/agents/save-systems-engineer.md",
+      "tools": [
+        "Read",
+        "Glob",
+        "Grep",
+        "Write",
+        "Edit",
+        "Bash"
+      ]
+    },
+    {
+      "id": "studio-art-ux",
+      "parent": "studio-director",
+      "dashboard_role": "art-ux",
+      "description": "Own visual identity, interaction clarity, accessibility and asset integration.",
+      "prompt": "agents/studio-art-ux/prom.md",
+      "definition": ".claude/agents/studio-art-ux.md",
+      "tools": [
+        "Read",
+        "Glob",
+        "Grep",
+        "Write",
+        "Edit"
+      ]
+    },
+    {
+      "id": "asset-artist",
+      "parent": "studio-art-ux",
+      "dashboard_role": "art-ux",
+      "description": "Produce original or licensed assets within measured rendering budgets.",
+      "prompt": "agents/asset-artist/prom.md",
+      "definition": ".claude/agents/asset-artist.md",
+      "tools": [
+        "Read",
+        "Glob",
+        "Grep",
+        "Write",
+        "Edit",
+        "Bash"
+      ]
+    },
+    {
+      "id": "audio-designer",
+      "parent": "studio-art-ux",
+      "dashboard_role": "art-ux",
+      "description": "Create licensed or original sound, mixing and audio accessibility behavior.",
+      "prompt": "agents/audio-designer/prom.md",
+      "definition": ".claude/agents/audio-designer.md",
+      "tools": [
+        "Read",
+        "Glob",
+        "Grep",
+        "Write",
+        "Edit",
+        "Bash"
+      ]
+    },
+    {
+      "id": "studio-qa",
+      "parent": "studio-director",
+      "dashboard_role": "qa",
+      "description": "Independently verify exact changes and release evidence with reproducible failures.",
+      "prompt": "agents/studio-qa/prom.md",
+      "definition": ".claude/agents/studio-qa.md",
+      "tools": [
+        "Read",
+        "Glob",
+        "Grep",
+        "Bash"
+      ]
+    },
+    {
+      "id": "device-tester",
+      "parent": "studio-qa",
+      "dashboard_role": "qa",
+      "description": "Exercise exact mobile builds on documented real phones and tablets.",
+      "prompt": "agents/device-tester/prom.md",
+      "definition": ".claude/agents/device-tester.md",
+      "tools": [
+        "Read",
+        "Glob",
+        "Grep",
+        "Bash"
+      ]
+    },
+    {
+      "id": "performance-tester",
+      "parent": "studio-qa",
+      "dashboard_role": "qa",
+      "description": "Measure frame time, memory, thermal behavior and long-session stability.",
+      "prompt": "agents/performance-tester/prom.md",
+      "definition": ".claude/agents/performance-tester.md",
+      "tools": [
+        "Read",
+        "Glob",
+        "Grep",
+        "Bash"
+      ]
+    },
+    {
+      "id": "uat-coordinator",
+      "parent": "studio-qa",
+      "dashboard_role": "qa",
+      "description": "Prepare real player testing and evidence for the owner's final review.",
+      "prompt": "agents/uat-coordinator/prom.md",
+      "definition": ".claude/agents/uat-coordinator.md",
+      "tools": [
+        "Read",
+        "Glob",
+        "Grep"
+      ]
+    },
+    {
+      "id": "release-preparer",
+      "parent": "studio-director",
+      "dashboard_role": "release",
+      "description": "Assemble both mobile artifacts and eight evidence gates for owner review.",
+      "prompt": "agents/release-preparer/prom.md",
+      "definition": ".claude/agents/release-preparer.md",
+      "tools": [
+        "Read",
+        "Glob",
+        "Grep",
+        "Write",
+        "Edit",
+        "Bash"
+      ]
+    },
+    {
+      "id": "store-compliance",
+      "parent": "release-preparer",
+      "dashboard_role": "release",
+      "description": "Check current platform requirements, privacy declarations and license obligations.",
+      "prompt": "agents/store-compliance/prom.md",
+      "definition": ".claude/agents/store-compliance.md",
+      "tools": [
+        "Read",
+        "Glob",
+        "Grep",
+        "WebSearch",
+        "WebFetch"
+      ]
+    },
+    {
+      "id": "launch-marketer",
+      "parent": "release-preparer",
+      "dashboard_role": "release",
+      "description": "Prepare truthful organic launch materials for the exact game build.",
+      "prompt": "agents/launch-marketer/prom.md",
+      "definition": ".claude/agents/launch-marketer.md",
+      "tools": [
+        "Read",
+        "Glob",
+        "Grep",
+        "Write",
+        "Edit",
+        "Bash"
+      ]
+    },
+    {
+      "id": "studio-liveops",
+      "parent": "studio-director",
+      "dashboard_role": "liveops",
+      "description": "Plan maintenance, urgent repairs and meaningful demand-led updates.",
+      "prompt": "agents/studio-liveops/prom.md",
+      "definition": ".claude/agents/studio-liveops.md",
+      "tools": [
+        "Read",
+        "Glob",
+        "Grep",
+        "Write",
+        "Edit"
+      ]
+    },
+    {
+      "id": "player-feedback-analyst",
+      "parent": "studio-liveops",
+      "dashboard_role": "liveops",
+      "description": "Analyze permitted feedback and telemetry without invented player metrics.",
+      "prompt": "agents/player-feedback-analyst/prom.md",
+      "definition": ".claude/agents/player-feedback-analyst.md",
+      "tools": [
+        "Read",
+        "Glob",
+        "Grep",
+        "Bash"
+      ]
+    },
+    {
+      "id": "dashboard-reviewer",
+      "parent": "studio-director",
+      "dashboard_role": "qa",
+      "description": "Independently review native dashboard authorization, evidence and regression risks.",
+      "prompt": "agents/dashboard-reviewer/prom.md",
+      "definition": ".claude/agents/dashboard-reviewer.md",
+      "tools": [
+        "Read",
+        "Glob",
+        "Grep",
+        "Bash"
+      ]
+    }
+  ]
+}

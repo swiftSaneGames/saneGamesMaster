@@ -10,7 +10,7 @@ This document proposes the next implementation. It does not claim workers, game 
 | Initial game architecture | Separate service-simulation, idle-economy and branching-event foundations | Share infrastructure without forcing every game into one mechanic. |
 | 3D art | Script-generated simple meshes and an evaluated free DCC tool | Prefer readable low-complexity art. Review license and export pipeline before adding a tool. |
 | UI and document design | Markdown specifications plus available Claude design/artifact features | Design prototypes guide implementation; source specifications remain in Git. |
-| Dashboard | Extend the existing FastAPI, SQLite and browser frontend | Do not rewrite the tested foundation merely to adopt a new framework. |
+| Dashboard | Maintain the current native Cloudflare Worker, SQLite Durable Object and browser frontend | `cloudflare/native/entry.mjs` is the deployment entrypoint; FastAPI/Mac-origin files are legacy. Do not resurrect that topology from historical instructions. |
 | Worker coordination | Python job runner with durable state, per-repo leases and bounded retries | Three existing Macs; no new hosted orchestration purchase. This runner is not implemented yet. |
 | Repository operations | Connected GitHub access or locally configured least-privilege tooling | Direct-to-main, single writer, reviewed diffs and non-force pushes. |
 | Ads and analytics | Explicit native adapter interfaces; test doubles first | No ad-plugin vendor selected. Verify license, SDK versions, consent handling and iOS/Android support in a spike. |
@@ -30,8 +30,10 @@ swiftSaneGames/saneGamesMaster        # existing master; do not create a replace
   docs/                             # decisions, architecture, SOPs
   research/                         # public-suitable sources and catalogs
   scraper/                          # permitted research workflow
-  .claude/agents/                   # role prompts
-  dashboard/                        # current owner review application
+  .claude/agents/                   # generated Claude role entrypoints
+  agents/                           # detailed prom.md contracts and registry
+  cloudflare/native/                # current owner review application
+  dashboard/                        # legacy Python application
   scripts/                          # deterministic utilities
 
 swiftSaneGames/<game-slug>           # PRIVATE; future per-game repository
@@ -53,7 +55,7 @@ Proposed boundaries inside each game: deterministic economy/progression domain; 
 
 Use a small Kanban flow: research → brief → architecture → scoped issues → development → independent QA → owner review → submission → live maintenance. Agents own intermediate gates. Maintain low work-in-progress; begin with one production game and one small research prototype. Increase parallelism only after measured device QA and maintenance capacity allow it.
 
-Proposed machine allocation: Mac 1 hosts coordination and the dashboard under separate restricted accounts; Mac 2 runs game builds and Android tests; Mac 3 handles Xcode/iOS builds and a restricted signing worker. These are roles, not proof of installed services. Public-facing code must never obtain the signing key or owner browser session.
+Proposed machine allocation: Mac 1 handles studio coordination; Mac 2 runs game builds and Android tests; Mac 3 handles Xcode/iOS builds and a restricted signing worker. The current dashboard targets Cloudflare, not a Mac origin. These machine roles are proposals, not proof of installed workers. Public-facing code must never obtain the signing key or owner browser session.
 
 Claude Code subagents provide scoped role contexts; prompts alone do not schedule three machines. Use only supported installed CLI features, and keep tool permissions role-specific. [Subagents](https://code.claude.com/docs/en/sub-agents), [hooks](https://code.claude.com/docs/en/hooks). Subscription usage is shared across Claude and Claude Code; preserve progress and stop rather than buying API credits. [Plan usage](https://support.claude.com/en/articles/11145838-use-claude-code-with-your-pro-or-max-plan).
 

@@ -1,5 +1,7 @@
 # Cloudflare deployment: gateway plus an existing Mac
 
+> Historical reference: this document describes the legacy Python/Mac-origin application or its test checkpoint. The active entrypoint is `cloudflare/native/entry.mjs`. Use [the current hosted guide](HOSTED_DASHBOARD.md) and `docs/HOSTED_TESTING.md` for current operations. Do not apply old Wrangler, hostname, OAuth or process settings to the native deployment.
+
 ## What failed and what this patch changes
 
 The supplied build #08b1329f installed Python dependencies, then failed while running `npx wrangler deploy`: Wrangler could not identify static files. The repository had neither a Worker entrypoint nor a Wrangler configuration. Retrying that source does not add either.
@@ -150,3 +152,4 @@ A timeout can occur after a write has succeeded. Read the release state before r
 - [Tunnel origin parameters](https://developers.cloudflare.com/tunnel/configuration/)
 - [Locally managed tunnel configuration](https://developers.cloudflare.com/tunnel/features/locally-managed-tunnels/configuration-file/)
 - [Worker Request redirect security](https://developers.cloudflare.com/workers/runtime-apis/request/)
+

@@ -1,25 +1,33 @@
-# Security boundaries and remaining work
+# Security boundaries and operational requirements
 
-## Separate identities
+The active application is `cloudflare/native/entry.mjs`, with Google identity verification and SQLite Durable Object storage. The older Python/GitHub OAuth gateway remains historical code.
 
-The internet-facing dashboard should run as an unprivileged service identity, separate from coding agents and the store-signing worker. Store credentials and signing keys do not belong on the dashboard host. Owner review happens in an owner-controlled browser session.
+## Identities and capabilities
 
-An intake token only authorizes project/candidate creation. Approval endpoints require the configured owner's session, exact-origin CSRF checks and an exact manifest confirmation. This separation holds at the application boundary. A machine administrator or an agent allowed to alter the database, runtime or owner session can bypass it. Do not claim role prompts alone provide security isolation.
+Owner browser sessions make release decisions. Intake credentials create permitted project/task/candidate records; they cannot approve releases. Configured worker credentials operate only the job API. Development Macs, the public dashboard, integration writer and future signing/publishing service need separate operational authority. Role prompts and tool allowlists cannot enforce that separation alone.
 
-## Public repository
+Cloudflare administrators can replace code or database contents. Native SQLite audit rows are not administrator-proof or externally anchored. Keep production/signing/owner identities outside development workers.
 
-Keep databases, build files, private game data, production secrets and signed URLs outside this tree. `.gitignore` is a convenience, not a security scanner. Inspect each staged diff and use secret scanning before pushing. Never reuse credentials exposed in chat. GitHub authorization should use configured tooling and scoped access.
+## Native controls
 
-## Evidence limitations
+Google signatures, issuer, audience, expiry, nonce and verified-email claims are checked before the allowlist. Verified subjects are pinned per identity. Secure sessions expire; state/nonce consumption prevents replay. Mutations use exact-origin/CSRF checks. Release approval requires recent authentication, exact manifest confirmation and both owner attestations.
 
-The application validates the manifest schema and declared statuses. It does not fetch linked artifacts or verify that an uploaded hash matches their bytes. It does not prove reported device tests happened. Independent QA and a future publisher must verify evidence and recompute hashes. An append-only hash chain detects ordinary application-level tampering; it is not an externally anchored or administrator-proof audit log.
+Native storage uses optimistic revisions, parameterized queries, persisted rate records, immutable candidate manifests and approval supersession. Evidence links require HTTPS and permitted hosts. Response headers constrain browser content access. Mocked provider tests do not demonstrate production sign-in.
 
-## Current application controls
+The application does not independently attest an MFA event for each Google session. Configure and verify two-step authentication on permitted accounts. Historical GitHub numeric IDs, Python in-memory limits and hash-chained legacy logs are not native guarantees.
 
-Secure production cookies; one-hour sessions; OAuth state and PKCE implementation; owner numeric-ID and two-factor checks; CSRF/origin checks; trusted-host validation; request-body limits; a bounded single-process rate limiter; HTTPS-only evidence-link allowlisting without tokenized queries; SQLite parameterized queries; and restrictive response headers.
+## Evidence and release limits
 
-None of these removes the need for real OAuth, browser, proxy and deployment testing. Production currently requires one process because its in-memory limiter is not shared across processes. Request/proxy logs must not record OAuth codes, cookies, bearer tokens or private manifests. Configure outer rate limits and access-log redaction before public use.
+The dashboard validates supplied structure/status; it does not download artifacts to recompute hashes or prove device testing occurred. Independent QA and a future publisher must verify actual bytes, provenance and current approval. Metadata export is not a complete hosted backup or tested restore.
 
-## Additional release hardening
+Store publication records are owner-reported. Worker task success is separate from QA acceptance and owner authorization. Machine credentials must never access approval endpoints.
 
-The existing owner session is not a fresh hardware-backed signature for each approval. Evaluate reauthentication or passkey step-up for high-impact actions. Add session revocation, intake credential rotation, host hardening, dependency scanning and externally stored audit anchors before enabling valuable publication credentials. Keep a tested recovery procedure.
+## Worker and source hygiene
+
+Use per-worker credentials and rotate through platform secrets. Do not log tokens, raw provider output or signing information. Limit workers to configured repositories, bounded jobs and valid leases. Fencing coordinates work but does not make compromised workers trustworthy.
+
+Never commit environment secrets, keys, databases, private game evidence, production binaries or personal tester records. Ignore rules and edit hooks are workflow aids, not containment of Bash. Review diffs, dependencies and asset licenses before serialized direct-to-main integration. Never force-push or enable paid fallback.
+
+## Operational acceptance
+
+Verify real permitted Google accounts and rejection of outsiders, worker credential isolation, actual persistence/migrations, log redaction, hosted restore, deployment ownership and artifact access. Perform physical-device QA separately. Repository code does not establish live acceptance.

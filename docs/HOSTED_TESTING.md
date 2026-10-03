@@ -2,7 +2,9 @@
 
 Run `npm test` with Node 22.13 or newer. The pretest step builds the private research bundle.
 
-The 77 native tests exercise real local SQLite through a Durable Object adapter and signed, mocked Google identity tokens. Coverage includes both allowed owners, unauthorized accounts, JWT claims/signatures, one-time OAuth state, sessions, CSRF/origin checks, project/task persistence, optimistic concurrency, research access, manifests, evidence gates, recent-auth approval, superseding candidates, intake isolation, publication records and logout.
+The native suite exercises real local SQLite through a Durable Object adapter and signed, mocked Google identity tokens. The 2026-10-03 prompt audit reran the baseline and counted 121 passing cases across the four native suites; earlier 77/111 counts describe historical checkpoints. Coverage includes both allowed owners, unauthorized accounts, JWT claims/signatures, one-time OAuth state, sessions, CSRF/origin checks, project/task persistence, optimistic concurrency, research access, manifests, evidence gates, recent-auth approval, superseding candidates, intake isolation, publication records and logout.
+
+Prompt checks: `python3 scripts/validate_agents.py` validates coverage, hierarchy, generated definitions and support templates. `python3 scripts/sync_agent_definitions.py --check` detects definition drift. These static checks do not validate Claude execution or prove that agents obey instructions.
 
 These tests do not sign in to real Google, provision Cloudflare, validate the production TLS certificate, launch Claude or publish a game. The Node SQLite adapter is not Cloudflare workerd. A deployed smoke test must independently confirm the Durable Object migration, runtime bindings, asset routing, both real accounts and persistence.
 

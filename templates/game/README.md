@@ -1,0 +1,15 @@
+# Private game repository bootstrap kit
+
+This is a documentation starter, not a Godot project or validated game runtime. The repository-bootstrapper owns applying it to an authorized new private game repository; the architect supplies the validated engine scaffold.
+
+1. Resolve organization, unique slug, private visibility and existing repository identity before creation. Record a stable game ID and master source commit. A reference catalog entry alone does not authorize creating a game.
+2. Copy `templates/game/CLAUDE.md` as the new root CLAUDE, replacing every placeholder with approved project facts. Preserve any existing game instructions and history.
+3. Copy root `prom.md`, the complete `agents/` folder, `.claude/agents/` definitions, `templates/agents/`, and `scripts/sync_agent_definitions.py` plus `scripts/validate_agents.py`. Copy the relevant confirmed studio policy documents named by the common/role contracts: `docs/DECISIONS.md`, `docs/REQUIREMENTS_INTERVIEW.md`, `docs/AGENT_ORGANIZATION.md` and `docs/STUDIO_BLUEPRINT.md`. Keep these pinned to the recorded master SHA; record local overrides separately.
+4. Replace the copied master-specific root `prom.md` with a game entrypoint that identifies this private repository and loads COMMON plus studio-director. Do not copy production dashboard configuration, OAuth identities, environment files, credentials, binaries or private evidence from another title.
+5. Write a game README identifying purpose, current state, chosen engine/tool versions or pending spike, and actual build/test commands. Create `docs/brief/`, `docs/architecture/`, `docs/production/`, `docs/qa/`, `docs/licenses/`, `docs/agent-state/` and `release/` as needed for real outputs, not empty claims of completion.
+6. Record audience, markets/languages, controls, connectivity, visual direction, ads/privacy design, progression, supported devices and performance budgets in `docs/brief/game-brief.md`. Leads resolve these per game. Publishing identity, credential setup and legal agreements remain appropriate owner tasks.
+7. Keep game-specific decisions in `docs/decisions.md`; distinguish studio policy from validated project choices. Maintain asset/dependency provenance with source, version, license, attribution and integration date.
+8. Add engine-appropriate ignores before importing files. Signing keys, tokens, local databases, sensitive tester data and production binaries never enter source control. Establish authorized private artifact storage with access/retention controls.
+9. Run `python3 scripts/validate_agents.py` and the actual game checks. Verify private visibility and remote identity before a normal single-writer push. Record exact bootstrap state and created IDs for idempotent retries.
+
+Role prompts reference master-only dashboard/research paths for relevant assignments. Those files are not game prerequisites: obtain only the specific evidence or pinned master reference needed. Do not fabricate a missing catalog or dashboard in each game. Engine templates, export scripts and native adapters still need engineering and real-device validation.

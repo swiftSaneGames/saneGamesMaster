@@ -13,7 +13,7 @@ Existing Worker: `sanegamesmasterdashboard`. Repository: `swiftSaneGames/saneGam
 | Deploy command | `npm run cf:deploy` |
 | Build variable | `SKIP_DEPENDENCY_INSTALL=1` |
 
-The interface, API and SQLite Durable Object run on Cloudflare. No Mac server or tunnel is required. Google sign-in needs the `GOOGLE_CLIENT_SECRET` runtime secret; the public client ID and two-account allowlist are already in `wrangler.jsonc`. Never commit a real secret.
+The interface, API and SQLite Durable Object target Cloudflare. No Mac server or tunnel is required. Google sign-in supports ID-token mode with the public client ID and configured JavaScript origin; `GOOGLE_CLIENT_SECRET` is required only for the optional authorization-code flow. The client ID and two-account allowlist are in `wrangler.jsonc`. Follow the current hosted setup guide and never commit a real secret.
 
 Read [hosted deployment](docs/HOSTED_DASHBOARD.md) and [test scope](docs/HOSTED_TESTING.md). After deploying this revision, `/healthz` identifies `cloudflare-native-worker` version `0.2.0`; `/login` serves the styled Google sign-in page. The old "Backend connection required" page belongs to a different entrypoint.
 
@@ -23,7 +23,18 @@ Research library (100 references, 20 studios, 12 concepts), persisted shortlists
 
 No running Claude workers, automatic GitHub synchronization or store-publishing integration is claimed. References are not a verified download ranking. Build reports and manual store records require owner verification.
 
-## Tests
+## Agent operating instructions
+
+Start with [prom.md](prom.md), then the [role directory](agents/README.md). Every registered agent and specialist has a detailed `agents/<role>/prom.md`, a shared execution contract, a checkpoint procedure and a Claude Code entrypoint. The 29 roles include the original ten and 19 additional coordinator/specialist definitions. [Coverage audit](docs/REPOSITORY_COVERAGE_AUDIT.md) distinguishes completed prompt work from remaining studio engineering.
+
+```bash
+python3 scripts/validate_agents.py
+python3 scripts/sync_agent_definitions.py --check
+```
+
+The role files guide execution; they do not start workers, create game repositories or publish games. Copy the pinned prompt kit through [the private game bootstrap instructions](templates/game/README.md) when preparing a game repository.
+
+## Dashboard tests
 
 Node 22.13 or newer:
 

@@ -42,4 +42,4 @@ python3 scripts/validate_research.py
 
 This validates record counts, identifiers, URLs, publisher joins and explicit missing-data fields. It does not re-open websites, measure downloads, test games or prove commercial viability.
 
-The dashboard does not yet import this catalog. Files in this directory are research artifacts, not proof that orchestration, deployment or store publishing is connected.
+The native dashboard imports this catalog through `scripts/build_hosted.mjs` and serves it through authenticated research APIs. Catalog integration does not prove the rankings, direct gameplay, worker orchestration or store publishing exists. The 29 detailed role contracts live in `agents/`; research agents must preserve the missing-data distinctions above.

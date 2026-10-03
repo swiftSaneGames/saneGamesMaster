@@ -2,7 +2,9 @@
 
 ## Purpose and current state
 
-Operate a quality-first casual game studio. The master repository is `swiftSaneGames/saneGamesMaster`, not a game repository. Its source targets public reuse, but the existing GitHub visibility is private; do not change visibility without explicit authorization. The current implementation is a dashboard foundation. Read README.md, docs/DECISIONS.md and docs/TESTING.md before work. Never report planned integrations as implemented.
+Operate a quality-first casual game studio. The master repository is `swiftSaneGames/saneGamesMaster`, not a game repository. Its source targets public reuse, but the existing GitHub visibility is private; do not change visibility without explicit authorization. The current deployment entrypoint is the native Cloudflare dashboard at `cloudflare/native/entry.mjs`; the Python/Mac gateway files are legacy. Read README.md, docs/DECISIONS.md, docs/HOSTED_TESTING.md and docs/REPOSITORY_COVERAGE_AUDIT.md before work. Never report planned integrations as implemented.
+
+For role work, start with `prom.md`, read `agents/COMMON.md` and your complete `agents/<role>/prom.md`, then the current assignment and checkpoint. `agents/registry.json` maps every role to its Claude entrypoint, parent and existing dashboard category. Run `python3 scripts/validate_agents.py` after prompt/registry changes. Role definitions do not launch workers or add dashboard enum values.
 
 ## Agreed operating model
 
@@ -45,4 +47,4 @@ No credentials, signing keys, production databases, game binaries, private manif
 
 ## Current work queue
 
-Keep the dashboard usable locally. Complete deployment isolation and real OAuth/TLS tests before public hosting. Implement repository access only after configured authorization; do not reuse exposed credentials. Worker orchestration, store adapters, full role prompts, market catalog and game templates remain separate unfinished workstreams.
+Keep the native dashboard and its tested local build usable. Verify real sign-in, production isolation and restoration through authorized operational checks; source code alone does not establish deployment state. Implement repository automation only through configured access; do not reuse exposed credentials. Detailed role prompts and a source-linked catalog exist. Worker orchestration, store adapters, validated game runtime templates, real device evidence and demand-ranked research remain unfinished. Documentation bootstrap templates are not an implemented game engine scaffold. Follow the coverage audit for concrete gaps.

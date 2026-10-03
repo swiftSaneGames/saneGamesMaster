@@ -33,3 +33,8 @@ These are requirements from the owner's planning session, not claims that all sy
 | Domain | Owner-supplied swiftsane.com; target prod.sanegames.swiftsane.com |
 
 A domain name is not a deployment. No DNS, hosting, repository or store action is confirmed by this requirements file.
+
+
+## Implementation update — 2026-10-03
+
+The historical hostname answer above records the planning session. Current `wrangler.jsonc` selects the native Cloudflare dashboard and `https://dashboard.sanegames.swiftsane.com` as `APP_ORIGIN`. Use the verified target configuration for operations; do not rewrite old answers as if the later implementation were the original choice. The expanded framework adds executable queue/worker code but still needs configured machine access and deployment acceptance.
