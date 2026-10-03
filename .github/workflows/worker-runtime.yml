@@ -1,0 +1,36 @@
+name: Worker runtime regression
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'cloudflare/**'
+      - 'tests/**'
+      - 'scripts/build_hosted.mjs'
+      - 'wrangler.jsonc'
+      - 'package.json'
+      - '.github/workflows/worker-runtime.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: worker-runtime-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  workerd:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      WRANGLER_SEND_METRICS: 'false'
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version-file: '.node-version'
+      - name: Unit regression
+        run: npm test
+      - name: Install pinned runtime tools for tests only
+        run: npm install --no-save --package-lock=false wrangler@4.147.0
+      - name: Exercise real Worker and SQLite runtime with disposable identities
+        run: node tests/runtime/workerd-smoke.mjs
