@@ -10,7 +10,7 @@ import { createRequire } from 'node:module';
 import { webcrypto } from 'node:crypto';
 const root = path.resolve(import.meta.dirname, '../..');
 const tools = createRequire(path.join(root, 'node_modules/wrangler/package.json'));
-const { Miniflare, createFetchMock } = tools('miniflare');
+const { Miniflare } = tools('miniflare');
 const { build } = tools('esbuild');
 const config = JSON.parse(await fs.readFile(path.join(root, 'wrangler.jsonc'), 'utf8'));
 const origin = 'https://runtime-test.example';
@@ -36,9 +36,13 @@ const compiled = await build({
     });
   } }]
 });
-const fetchMock = createFetchMock();
-fetchMock.disableNetConnect();
-fetchMock.get('https://www.googleapis.com').intercept({ path: '/oauth2/v3/certs', method: 'GET' }).reply(200, JSON.stringify({ keys: [publicKey] }), { headers: { 'Content-Type': 'application/json', 'Cache-Control': 'max-age=60' } }).persist();
+// Miniflare 5 replaces fetchMock with an outboundService handler.
+const provider = request => {
+  if (request.method === 'GET' && request.url === 'https://www.googleapis.com/oauth2/v3/certs') {
+    return Response.json({ keys: [publicKey] }, { headers: { 'Cache-Control': 'max-age=60' } });
+  }
+  throw new Error('Unexpected outbound request in isolated runtime test');
+};
 let runtime;
 async function start() {
   runtime = new Miniflare({
@@ -47,7 +51,7 @@ async function start() {
     compatibilityFlags: config.compatibility_flags || [],
     bindings: { APP_ORIGIN: origin, ALLOWED_EMAILS: emails.join(','), GOOGLE_CLIENT_ID: client },
     durableObjects: { STUDIO: { className: 'StudioStore', useSQLite: true } },
-    durableObjectsPersist: path.join(temp, 'storage'), fetchMock,
+    durableObjectsPersist: path.join(temp, 'storage'), outboundService: provider, cf: false,
     serviceBindings: { ASSETS: async request => {
       const filename = path.resolve(root, 'cloudflare/public', '.' + new URL(request.url).pathname);
       const assets = path.join(root, 'cloudflare/public') + path.sep;
@@ -109,6 +113,5 @@ try {
   console.log('All workerd login and persistence checks passed. Google responses were mocked; no production login is claimed.');
 } finally {
   if (runtime) await runtime.dispose();
-  await fetchMock.close();
   await fs.rm(temp, { recursive: true, force: true });
 }
