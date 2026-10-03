@@ -19,3 +19,9 @@ var/
 .DS_Store
 test-results/
 playwright-report/
+
+node_modules/
+.wrangler/
+.dev.vars
+.dev.vars.*
+cloudflare-dist/

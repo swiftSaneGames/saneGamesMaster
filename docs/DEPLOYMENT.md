@@ -2,13 +2,19 @@
 
 **Status: not deployed.** No DNS record, TLS certificate, public route, service account or OAuth application has been created by this checkpoint.
 
+## Cloudflare deployment path
+
+The owner has selected Cloudflare Workers for the public entrypoint. See [CLOUDFLARE.md](CLOUDFLARE.md) for the Worker gateway plus named Tunnel deployment on an existing Mac. Root `wrangler.jsonc` configures the edge gateway; it does not run Python or provide persistent local SQLite in Workers. Hostname, OAuth, tunnel and runtime secrets still require configuration and live validation.
+
+The dedicated launcher `scripts/run_cloudflare_origin.sh` requires a gateway secret before starting the production backend. Do not publish the demo or solve the build failure by uploading only `dashboard/static`.
+
 ## Existing resources and unresolved infrastructure
 
 The owner supplies the domain and three Macs. The DNS provider, network reachability and current domain configuration remain unknown. Select a no-additional-cost route only after checking those details. Do not modify unrelated DNS records or assume a router accepts inbound traffic. Do not expose the development server or demo mode.
 
 ## Service contract
 
-The production launcher binds only to `127.0.0.1:8787`. A trusted local HTTPS reverse proxy must preserve the configured hostname and supply the forwarded scheme. The launcher trusts forwarded headers only from `127.0.0.1`. Adapt and test this exact trust boundary if a different proxy topology is chosen. The existing launcher comment names Caddy, but this checkpoint does not include an installed or configured proxy.
+The production launcher binds only to `127.0.0.1:8787`. A trusted local HTTPS reverse proxy must preserve the configured hostname and supply the forwarded scheme. The launcher trusts forwarded headers only from `127.0.0.1`. Adapt and test this exact trust boundary if a different proxy topology is chosen. Validate the loopback cloudflared topology described in the Cloudflare guide, or independently validate an alternative trusted proxy.
 
 Use a dedicated service user, private state directory outside the checkout, encrypted local storage and protected backups. Set a restrictive file-creation mask. Do not run the service or its intake client under an account with unattended store-signing authority.
 

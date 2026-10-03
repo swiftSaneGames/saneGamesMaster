@@ -1,0 +1,11 @@
+# Documentation template only. Keep the real config and credentials outside Git.
+# Use a named tunnel, not a temporary trycloudflare.com Quick Tunnel.
+tunnel: REPLACE_WITH_TUNNEL_UUID
+credentials-file: /ABSOLUTE/PRIVATE/PATH/REPLACE_WITH_TUNNEL_UUID.json
+
+ingress:
+  - hostname: studio-origin.swiftsane.com
+    service: http://127.0.0.1:8787
+    originRequest:
+      httpHostHeader: prod.sanegames.swiftsane.com
+  - service: http_status:404

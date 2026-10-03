@@ -13,8 +13,12 @@ fi
 : "${INTAKE_TOKEN:?Configure a dedicated agent intake credential}"
 : "${STUDIO_DATA_DIR:?Set a private state directory outside the repository}"
 export BASE_URL="${BASE_URL:-https://prod.sanegames.swiftsane.com}"
-# Caddy is the only trusted local reverse proxy. Never bind this process publicly.
+# Only a trusted loopback proxy (cloudflared or Caddy) may reach this process.
 # Access logs are disabled so OAuth codes cannot enter ordinary request logs.
-exec .venv/bin/python -m uvicorn dashboard.main:create_app --factory \
+factory=dashboard.main:create_app
+if [ -n "${GATEWAY_TOKEN:-}" ]; then
+  factory=dashboard.cloudflare:create_app
+fi
+exec .venv/bin/python -m uvicorn "$factory" --factory \
   --host 127.0.0.1 --port 8787 --workers 1 \
   --proxy-headers --forwarded-allow-ips=127.0.0.1 --no-access-log

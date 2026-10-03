@@ -17,6 +17,7 @@ class Settings:
     github_client_id: str = ""
     github_client_secret: str = ""
     intake_token: str = ""
+    gateway_token: str = ""
     artifact_hosts: tuple[str, ...] = (
         "github.com", "testflight.apple.com", "play.google.com", "appstoreconnect.apple.com"
     )
@@ -36,6 +37,10 @@ class Settings:
     def validate(self) -> None:
         if self.mode not in {"demo", "production"}:
             raise ValueError("APP_MODE must be demo or production")
+        if self.gateway_token:
+            import re
+            if not self.live or not re.fullmatch(r"[A-Za-z0-9_-]{40,200}", self.gateway_token):
+                raise ValueError("GATEWAY_TOKEN requires production mode and 40-200 URL-safe characters")
         parsed = urlsplit(self.base_url)
         if not parsed.hostname or parsed.path not in {"", "/"} or parsed.query or parsed.fragment:
             raise ValueError("BASE_URL must be an origin, without a path or query")
@@ -67,5 +72,6 @@ class Settings:
             github_client_id=os.getenv("GITHUB_CLIENT_ID", ""),
             github_client_secret=os.getenv("GITHUB_CLIENT_SECRET", ""),
             intake_token=os.getenv("INTAKE_TOKEN", ""),
+            gateway_token=os.getenv("GATEWAY_TOKEN", ""),
             artifact_hosts=tuple(x.strip().lower() for x in os.getenv("ARTIFACT_HOSTS", "github.com,testflight.apple.com,play.google.com,appstoreconnect.apple.com").split(",") if x.strip()),
         )

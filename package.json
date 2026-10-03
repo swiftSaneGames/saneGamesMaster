@@ -1,0 +1,11 @@
+{
+  "name": "sanegames-studio-gateway",
+  "private": true,
+  "version": "0.1.1",
+  "type": "module",
+  "scripts": {
+    "test": "node --test cloudflare/worker.test.mjs",
+    "cf:check": "npx --yes wrangler@4.147.0 deploy --dry-run",
+    "cf:deploy": "npx --yes wrangler@4.147.0 deploy"
+  }
+}
