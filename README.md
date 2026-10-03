@@ -25,7 +25,7 @@ The launch prompt explains role routing, repository creation, design decisions, 
 | Game-name kickoff | Local planning/bootstrap and configured private-repository/dashboard kickoff tooling. |
 | Cloud coordination | Durable jobs, dependencies, idempotency, bounded retries, expiring repository leases and fencing. |
 | Worker execution | Opt-in subscription CLI runner, repository checks, isolated candidates, structured results and private artifacts. |
-| Operations dashboard | Worker freshness, job states, task creation, evidence inspection, pipeline start and repair controls. |
+| Operations dashboard | [Studio interface](docs/DASHBOARD_DESIGN.md), worker freshness, job states, task creation, evidence inspection, pipeline start and repair controls. |
 | Design workflow | Claude Design as the primary visual/prototype workflow, with explicit implementation/export handoffs. |
 | Project skills/hooks | Planning, design, implementation and release-evidence skills; session reminders and narrow sensitive-file checks. |
 | Research | 500 directly verified Play listing identities, plus the earlier 100-reference publisher study. |
@@ -93,6 +93,7 @@ python3 -m unittest discover -s tests -p 'test_studio_worker.py'
 python3 -m unittest discover -s tests -p 'test_start_game.py'
 python3 -m unittest discover -s tests -p 'test_game_checks.py'
 node tests/browser_jobs.mjs --static
+node tests/dashboard_layout.mjs --static
 ```
 
 Run the full browser fixture with an installed Chromium/Playwright runtime. Native tests use synthetic identities and local SQLite; they do not prove real Google sign-in, Cloudflare deployment, Claude execution, device testing or store publication. Legacy Python/gateway code is not the active deployment; see [test scope](docs/HOSTED_TESTING.md).

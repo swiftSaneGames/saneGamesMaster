@@ -54,7 +54,7 @@ jobs:
           python3 -m unittest discover -s tests -p 'test_studio_worker.py'
           python3 -m unittest discover -s tests -p 'test_game_checks.py'
       - name: Check dashboard source contract
-        run: node tests/browser_jobs.mjs --static
+        run: node tests/browser_jobs.mjs --static && node tests/dashboard_layout.mjs --static
       - name: Install pinned runtime tools for tests only
         run: npm install --no-save --package-lock=false wrangler@4.147.0
       - name: Exercise real Worker and SQLite runtime with disposable identities

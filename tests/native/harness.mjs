@@ -37,7 +37,8 @@ export function harness(overrides = {}, dbFile = ':memory:') {
     const pathname = new URL(request.url).pathname;
     const file = path.resolve(root, 'cloudflare/public', '.' + pathname);
     if (!file.startsWith(path.join(root, 'cloudflare/public') + path.sep) || !fs.existsSync(file)) return new Response('Not found', { status: 404 });
-    return new Response(fs.readFileSync(file), { headers: { 'Content-Type': file.endsWith('.css') ? 'text/css' : file.endsWith('.js') ? 'text/javascript' : 'text/html' } });
+    const types = { '.css': 'text/css', '.js': 'text/javascript', '.html': 'text/html', '.png': 'image/png', '.ico': 'image/x-icon', '.svg': 'image/svg+xml' };
+    return new Response(fs.readFileSync(file), { headers: { 'Content-Type': types[path.extname(file)] || 'application/octet-stream' } });
   } };
   const codes = new Map(); let tokenFetches = 0;
   const provider = async (url, init) => {

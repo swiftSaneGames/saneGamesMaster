@@ -6,7 +6,7 @@ import { googleStatus, googleLoginHeaders, createGoogleID } from './google-id.mj
 import { authenticatedWorker } from './jobs.mjs';
 export { StudioStore };
 const SESSION = '__Host-sg-session', OAUTH = '__Host-sg-oauth';
-const publicAssets = new Set(['/assets/style.css', '/assets/app.js', '/assets/login.js', '/assets/google-login.css']);
+const publicAssets = new Set(['/assets/style.css', '/assets/app.js', '/assets/login.js', '/assets/google-login.css', '/assets/studio-mascot.png']);
 const secureHeaders = {
   'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff', 'X-Frame-Options': 'DENY',
   'Referrer-Policy': 'no-referrer', 'X-Robots-Tag': 'noindex, nofollow', 'Strict-Transport-Security': 'max-age=31536000',

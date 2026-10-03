@@ -35,3 +35,12 @@ node tests/runtime/workerd-smoke.mjs
 ```
 
 No Cloudflare deployment, connected Mac, authenticated Claude Design session, actual model job, physical-device game test, signed game build or store submission was performed in this framework change. Complete [environment acceptance](IMPLEMENTATION_ROADMAP.md) before describing the studio as operational. Keep a separate exact-build evidence ledger for each real game.
+
+
+## Dashboard redesign verification — 2026-10-03
+
+The later dashboard change was checked independently after the framework checkpoint above. `npm test` passed all seven native source files; the four new branding cases cover the exact PNG, favicon links, public MIME/security headers and preservation of private routes. Both UI static fixtures passed.
+
+A temporary Chromium installation subsequently became available. Both full Playwright fixtures (`tests/browser_jobs.mjs` and `tests/dashboard_layout.mjs`) passed with synthetic accounts and operations data. The layout fixture uses the actual role registry and research catalog. It checks department and search filtering, prompt reading, assignment preselection, role-job navigation, mobile menus, route scroll reset, refresh scroll preservation, overflow and console errors. Desktop and mobile agents, overview and sign-in screenshots were visually inspected. See [the design preview](DASHBOARD_DESIGN.md).
+
+The favicon PNG matches the supplied image byte-for-byte. No authentication policy, owner approval requirement, storage schema or external service was added by the redesign. These browser checks are offline fixtures: they do not prove Cloudflare deployment, real account sign-in or worker execution.
