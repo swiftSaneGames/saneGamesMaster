@@ -1,11 +1,15 @@
 {
-  "name": "sanegames-studio-gateway",
+  "name": "sanegames-hosted-studio",
   "private": true,
-  "version": "0.1.1",
+  "version": "0.2.0",
   "type": "module",
+  "engines": { "node": ">=22.13.0" },
   "scripts": {
-    "test": "node --test cloudflare/worker.test.mjs",
+    "build": "node scripts/build_hosted.mjs",
+    "pretest": "npm run build",
+    "test": "node --test tests/native/*.test.mjs",
     "cf:check": "npx --yes wrangler@4.147.0 deploy --dry-run",
-    "cf:deploy": "npx --yes wrangler@4.147.0 deploy"
+    "cf:deploy": "npx --yes wrangler@4.147.0 deploy",
+    "cf:dev": "npx --yes wrangler@4.147.0 dev"
   }
 }

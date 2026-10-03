@@ -1,9 +1,9 @@
-# Cloudflare deployment entry point
+# Cloudflare-native dashboard
 
-Read [the Cloudflare setup guide](docs/CLOUDFLARE.md).
+Use [docs/HOSTED_DASHBOARD.md](docs/HOSTED_DASHBOARD.md).
 
-The root `wrangler.jsonc` now declares the existing `sanegamesmasterdashboard` Worker and its entrypoint. The Worker is an HTTPS gateway, not a static export or a Python hosting environment. FastAPI and the persistent SQLite database remain on a dedicated Mac, connected by Cloudflare Tunnel.
+The root Wrangler configuration now deploys `cloudflare/native/entry.mjs`, static assets and a SQLite-backed Durable Object. The earlier Mac/Tunnel setup in `docs/CLOUDFLARE.md` is superseded for this deployment. Do not configure BACKEND_ORIGIN or run the demo to publish this application.
 
-Build from the updated `main` with root `/`, build command `npm test`, and deploy command `npm run cf:deploy`. Add `SKIP_DEPENDENCY_INSTALL=1` as a build variable. Runtime origin and secret setup, Mac instructions and the custom-domain checks are in the guide.
+Cloudflare build: `npm test`. Deploy: `npm run cf:deploy`. Root: `/`. Build variable: `SKIP_DEPENDENCY_INSTALL=1`. Production secret: `GOOGLE_CLIENT_SECRET`, entered only in Cloudflare runtime Secrets.
 
-A successful Worker deployment is **not** a completed dashboard deployment. An unconfigured gateway intentionally returns a 503 setup page. Never use demo mode as a public workaround.
+A code push, a successful Cloudflare build, and successful Google login are distinct verification steps.

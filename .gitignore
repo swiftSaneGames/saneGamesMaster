@@ -19,9 +19,14 @@ var/
 .DS_Store
 test-results/
 playwright-report/
-
 node_modules/
 .wrangler/
 .dev.vars
 .dev.vars.*
 cloudflare-dist/
+cloudflare/generated/
+.sg-qa/
+
+# Downloaded OAuth credentials must never enter version control.
+client_secret*.json
+oauth_credentials*.json

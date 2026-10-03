@@ -1,10 +1,42 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "sanegamesmasterdashboard",
-  "main": "cloudflare/worker.mjs",
+  "main": "cloudflare/native/entry.mjs",
   "compatibility_date": "2026-10-03",
   "workers_dev": true,
   "preview_urls": false,
   "keep_vars": true,
-  "observability": { "enabled": false }
+  "assets": {
+    "directory": "cloudflare/public",
+    "binding": "ASSETS",
+    "run_worker_first": true,
+    "html_handling": "none"
+  },
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "STUDIO",
+        "class_name": "StudioStore"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "studio-native-v1",
+      "new_sqlite_classes": [
+        "StudioStore"
+      ]
+    }
+  ],
+  "vars": {
+    "APP_ORIGIN": "https://dashboard.sanegames.swiftsane.com",
+    "ALLOWED_EMAILS": "singhjatin1603@gmail.com,23csu141@ncuindia.edu",
+    "GOOGLE_CLIENT_ID": "263824843636-fe0vn1j4jcrjg8rh5kpbofthq7chrq5a.apps.googleusercontent.com"
+  },
+  "build": {
+    "command": "node scripts/build_hosted.mjs"
+  },
+  "observability": {
+    "enabled": false
+  }
 }
