@@ -2,9 +2,10 @@ import research from '../generated/research.mjs';
 import { StudioStore } from './store.mjs';
 import { AppError, requireThat, json, random, sha256, challenge, canonical, cookies, cookie, equal, readJSON, verifyGoogle, allowlist, origin } from './security.mjs';
 import { manifestInput } from './models.mjs';
+import { googleStatus, googleLoginHeaders, createGoogleID } from './google-id.mjs';
 export { StudioStore };
 const SESSION = '__Host-sg-session', OAUTH = '__Host-sg-oauth';
-const publicAssets = new Set(['/assets/style.css', '/assets/app.js', '/assets/login.js']);
+const publicAssets = new Set(['/assets/style.css', '/assets/app.js', '/assets/login.js', '/assets/google-login.css']);
 const secureHeaders = {
   'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff', 'X-Frame-Options': 'DENY',
   'Referrer-Policy': 'no-referrer', 'X-Robots-Tag': 'noindex, nofollow', 'Strict-Transport-Security': 'max-age=31536000',
@@ -22,6 +23,7 @@ async function call(env, op, payload = {}, session_hash = '', csrf = '', agent =
 }
 /** Dependency injection is for tests only. Production always uses the platform fetch. */
 export function createHandler(providerFetch = (...args) => fetch(...args)) {
+  const googleID = createGoogleID(providerFetch);
   let keyCache = null, keysUntil = 0;
   async function keys(force = false) {
     if (!force && keyCache && keysUntil > Date.now()) return keyCache;
@@ -41,13 +43,18 @@ export function createHandler(providerFetch = (...args) => fetch(...args)) {
       }
       const path = url.pathname, method = request.method, jar = cookies(request);
       if (method === 'GET' && path === '/healthz') return secure(json({ status: 'ok', component: 'cloudflare-native-worker', version: '0.2.0' }));
-      if (method === 'GET' && path === '/auth/status') return secure(json({ configured: configured(env) }));
+      if (method === 'GET' && path === '/auth/status') return secure(json(googleStatus(env)));
       if (method === 'GET' && publicAssets.has(path)) return secure(await env.ASSETS.fetch(request));
-      if (method === 'GET' && ['/login', '/privacy'].includes(path)) return secure(await env.ASSETS.fetch(new Request(appOrigin + (path === '/login' ? '/login.html' : '/privacy.html'))));
+      if (method === 'GET' && ['/login', '/privacy'].includes(path)) {
+        const page = secure(await env.ASSETS.fetch(new Request(appOrigin + (path === '/login' ? '/login.html' : '/privacy.html'))));
+        return path === '/login' ? googleLoginHeaders(page) : page;
+      }
       if (path.startsWith('/auth/') || path.startsWith('/api/intake/')) {
         const key = await sha256((request.headers.get('CF-Connecting-IP') || 'unknown') + ':' + (path.startsWith('/auth/') ? 'auth' : 'intake'));
         await call(env, 'rate', { key, limit: 30 });
       }
+      if (method === 'POST' && path === '/auth/google/prepare') return secure(await googleID.prepare(request, env, call));
+      if (method === 'POST' && path === '/auth/google/credential') return secure(await googleID.complete(request, env, call));
       if (method === 'GET' && path === '/auth/google') {
         requireThat(configured(env), 'Google sign-in requires its Cloudflare secrets', 503, 'sso_not_configured');
         const state = random(), nonce = random(), verifier = random(48);

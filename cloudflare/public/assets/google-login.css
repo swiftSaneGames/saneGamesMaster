@@ -1,0 +1,3 @@
+/* Author display rules must not override the HTML hidden attribute. */
+.google-button[hidden], #google-identity-button[hidden] { display: none !important; }
+#google-identity-button { min-height: 44px; max-width: 100%; }
