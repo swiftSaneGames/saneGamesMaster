@@ -3,6 +3,7 @@ import { StudioStore } from './store.mjs';
 import { AppError, requireThat, json, random, sha256, challenge, canonical, cookies, cookie, equal, readJSON, verifyGoogle, allowlist, origin } from './security.mjs';
 import { manifestInput } from './models.mjs';
 import { googleStatus, googleLoginHeaders, createGoogleID } from './google-id.mjs';
+import { authenticatedWorker } from './jobs.mjs';
 export { StudioStore };
 const SESSION = '__Host-sg-session', OAUTH = '__Host-sg-oauth';
 const publicAssets = new Set(['/assets/style.css', '/assets/app.js', '/assets/login.js', '/assets/google-login.css']);
@@ -15,10 +16,10 @@ const secureHeaders = {
 function secure(response) { const r = new Response(response.body, response); for (const [k, v] of Object.entries(secureHeaders)) r.headers.set(k, v); return r; }
 const redirect = (location, extra = {}) => new Response(null, { status: 303, headers: { Location: location, ...extra } });
 const configured = env => Boolean(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET && allowlist(env).length);
-async function call(env, op, payload = {}, session_hash = '', csrf = '', agent = false) {
+async function call(env, op, payload = {}, session_hash = '', csrf = '', agent = false, worker_id = '') {
   requireThat(env.STUDIO, 'Cloudflare storage binding is unavailable', 503);
   const stub = env.STUDIO.get(env.STUDIO.idFromName('sanegames-primary-v1'));
-  const r = await stub.fetch('https://studio.internal/command', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ op, payload, session_hash, csrf, agent }) });
+  const r = await stub.fetch('https://studio.internal/command', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ op, payload, session_hash, csrf, agent, worker_id }) });
   const data = await r.json(); if (!r.ok) throw new AppError(r.status, data.error || 'Studio operation failed', data.code); return data;
 }
 /** Dependency injection is for tests only. Production always uses the platform fetch. */
@@ -82,12 +83,27 @@ export function createHandler(providerFetch = (...args) => fetch(...args)) {
           return secure(redirect('/login?error=' + reason, { 'Set-Cookie': cookie(OAUTH, '', 0) }));
         }
       }
+      if (path.startsWith('/api/worker/')) {
+        requireThat(method === 'POST', 'Method not allowed', 405);
+        const ipKey = await sha256((request.headers.get('CF-Connecting-IP') || 'unknown') + ':worker-auth');
+        await call(env, 'rate', { key: ipKey, limit: 120 });
+        const workerId = authenticatedWorker(env, request.headers.get('Authorization'));
+        const workerKey = await sha256(workerId + ':worker');
+        await call(env, 'rate', { key: workerKey, limit: 120 });
+        const operations = { '/api/worker/heartbeat': 'worker_heartbeat', '/api/worker/claim': 'worker_claim', '/api/worker/renew': 'worker_renew', '/api/worker/complete': 'worker_complete', '/api/worker/fail': 'worker_fail', '/api/worker/candidate': 'worker_candidate' };
+        requireThat(Object.hasOwn(operations, path), 'Unknown worker endpoint', 404);
+        const body = await readJSON(request);
+        if (path === '/api/worker/candidate') { const manifest = manifestInput(body.manifest || {}, env); body.manifest = manifest; body.hash = await sha256(canonical(manifest)); }
+        return secure(json(await call(env, operations[path], body, '', '', false, workerId)));
+      }
       const sessionHash = await sha256(jar[SESSION] || ''), csrf = request.headers.get('X-CSRF-Token') || '';
       if (path.startsWith('/api/intake/')) {
         requireThat(method === 'POST', 'Method not allowed', 405);
         requireThat(typeof env.INTAKE_TOKEN === 'string' && env.INTAKE_TOKEN.length >= 40 && equal(request.headers.get('Authorization'), 'Bearer ' + env.INTAKE_TOKEN), 'Intake credentials are invalid', 401);
         const body = await readJSON(request); let result;
         if (path === '/api/intake/projects') result = await call(env, 'project_create', body, '', '', true);
+        else if (path === '/api/intake/jobs') result = await call(env, 'job_create', body, '', '', true);
+        else if (/^\/api\/intake\/projects\/p-[a-f0-9-]+\/plan$/.test(path)) result = await call(env, 'job_plan', { ...body, id: path.split('/')[4] }, '', '', true);
         else if (path === '/api/intake/releases') { const manifest = manifestInput(body, env); result = await call(env, 'candidate_create', { manifest, hash: await sha256(canonical(manifest)) }, '', '', true); }
         else if (path === '/api/intake/tasks') result = await call(env, 'task_update', body, '', '', true);
         else throw new AppError(404, 'Unknown intake endpoint');
@@ -101,9 +117,9 @@ export function createHandler(providerFetch = (...args) => fetch(...args)) {
       const user = await call(env, 'session', {}, sessionHash);
       if (method === 'GET' && path === '/api/state') {
         const state = await call(env, 'state', {}, sessionHash);
-        return secure(json({ ...state, hosting: 'Cloudflare Workers + SQLite Durable Objects', app_origin: appOrigin, integrations: { google_sso: true, hosted_database: true, agent_intake: Boolean(env.INTAKE_TOKEN?.length >= 40), github_sync: false, mac_workers: false, store_publishing: false }, allowed_emails: allowlist(env) }));
+        return secure(json({ ...state, hosting: 'Cloudflare Workers + SQLite Durable Objects', app_origin: appOrigin, integrations: { google_sso: true, hosted_database: true, agent_intake: Boolean(env.INTAKE_TOKEN?.length >= 40), github_sync: false, mac_workers: state.workers.some(w => w.online), durable_job_queue: true, store_publishing: false }, allowed_emails: allowlist(env) }));
       }
-      if (method === 'GET' && path === '/api/catalog') return secure(json({ games: research.games, studios: research.studios, concepts: research.concepts, documents: research.documents.map(({ content, ...meta }) => meta), roles: research.roles, research_date: research.research_date, ranking_status: research.ranking_status }));
+      if (method === 'GET' && path === '/api/catalog') return secure(json({ games: research.games, discovery_games: research.discoveryGames || [], discovery_note: 'Curated discovery references, not a verified download ranking.', studios: research.studios, concepts: research.concepts, documents: research.documents.map(({ content, ...meta }) => meta), roles: research.roles, research_date: research.research_date, ranking_status: research.ranking_status }));
       if (method === 'GET' && path.startsWith('/api/docs/')) { const d = research.documents.find(d => d.id === path.slice('/api/docs/'.length)); requireThat(d, 'Document not found', 404); return secure(json(d)); }
       if (method === 'GET' && path === '/api/export') {
         const data = await call(env, 'export', {}, sessionHash); delete data.user;
@@ -115,6 +131,9 @@ export function createHandler(providerFetch = (...args) => fetch(...args)) {
       const writeKey = await sha256(user.sub + ':write'); await call(env, 'rate', { key: writeKey, limit: 60 });
       const body = await readJSON(request); let result;
       if (path === '/auth/logout' && method === 'POST') { await call(env, 'logout', {}, sessionHash, csrf); return secure(json({ ok: true }, 200, { 'Set-Cookie': cookie(SESSION, '', 0) })); }
+      else if (path === '/api/jobs' && method === 'POST') result = await call(env, 'job_create', body, sessionHash, csrf);
+      else if (/^\/api\/projects\/p-[a-f0-9-]+\/plan$/.test(path) && method === 'POST') result = await call(env, 'job_plan', { ...body, id: path.split('/')[3] }, sessionHash, csrf);
+      else if (/^\/api\/jobs\/j-[a-f0-9-]+\/(cancel|retry)$/.test(path) && method === 'POST') result = await call(env, 'job_' + path.split('/')[4], { id: path.split('/')[3] }, sessionHash, csrf);
       else if (path === '/api/projects' && method === 'POST') result = await call(env, 'project_create', body, sessionHash, csrf);
       else if (/^\/api\/projects\/p-[a-f0-9-]+$/.test(path) && method === 'PATCH') result = await call(env, 'project_update', { ...body, id: path.split('/')[3] }, sessionHash, csrf);
       else if (/^\/api\/tasks\/t-[a-f0-9-]+$/.test(path) && method === 'PATCH') result = await call(env, 'task_update', { ...body, id: path.split('/')[3] }, sessionHash, csrf);
@@ -131,3 +150,4 @@ export function createHandler(providerFetch = (...args) => fetch(...args)) {
   } };
 }
 export default createHandler();
+

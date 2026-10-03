@@ -18,11 +18,14 @@ export function parseCSV(source) {
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const gamesCSV = read('research/games_100.csv'), studiosCSV = read('research/studios_20.csv');
 const games = parseCSV(gamesCSV), studios = parseCSV(studiosCSV);
+const discoveryGames = fs.existsSync(path.join(root, 'research/games_500.csv')) ? parseCSV(read('research/games_500.csv')) : [];
+if (discoveryGames.length && (discoveryGames.length !== 500 || new Set(discoveryGames.map(g => g.package_id)).size !== 500 || discoveryGames.some(g => g.ranking_status !== 'unranked_reference'))) throw new Error('Discovery catalog must contain 500 unique unranked references');
 if (games.length !== 100 || new Set(games.map(g => g.game_id)).size !== 100 || studios.length !== 20) throw new Error('Research catalog counts are invalid');
 for (const studio of studios.filter(s => s.group === 'primary')) if (games.filter(g => g.studio_id === studio.studio_id).length !== 10) throw new Error('Expected ten references per primary studio');
 const concepts = read('research/GAME_SHORTLIST.md').split('\n').filter(x => /^\| \d+ \|/.test(x)).map(x => { const v = x.split('|').slice(1, -1).map(s => s.trim()); return { id: +v[0], title: v[1], references: v[2], differentiator: v[3], concerns: v[4] }; });
 const documentPaths = ['docs/REQUIREMENTS_INTERVIEW.md', 'docs/STUDIO_BLUEPRINT.md', 'docs/AGENT_ORGANIZATION.md', 'docs/DECISIONS.md', 'research/README.md', 'research/PRIORITIZATION.md', 'research/GAME_SHORTLIST.md', 'research/STORE_ENROLLMENT.md', 'research/SOURCES.md', 'scraper/RESEARCH_PROMPT.md', 'docs/HOSTED_DASHBOARD.md', 'docs/HOSTED_TESTING.md'];
-const documents = documentPaths.filter(f => fs.existsSync(path.join(root, f))).map(file => ({ id: path.basename(file, '.md').toLowerCase(), title: read(file).split('\n')[0].replace(/^#\s*/, ''), file, content: read(file) }));
+documentPaths.push('docs/TECH_STACK.md', 'docs/CLAUDE_TOOLING.md', 'docs/WORKER_SETUP.md', 'docs/GAME_BOOTSTRAP.md', 'docs/START_A_GAME.md', 'docs/IMPLEMENTATION_ROADMAP.md', 'docs/REPOSITORY_COVERAGE_AUDIT.md', 'research/CATALOG_500.md', 'agents/README.md', 'prom.md');
+const documents = documentPaths.filter(f => fs.existsSync(path.join(root, f))).map(file => ({ id: file === 'agents/README.md' ? 'agent-directory' : path.basename(file, '.md').toLowerCase(), title: read(file).split('\n')[0].replace(/^#\s*/, ''), file, content: read(file) }));
 const agentRegistry = JSON.parse(read('agents/registry.json'));
 const sharedContract = read(agentRegistry.shared_contract);
 const roles = agentRegistry.roles.map(role => ({
@@ -30,7 +33,7 @@ const roles = agentRegistry.roles.map(role => ({
   dashboard_role: role.dashboard_role, file: role.prompt,
   content: sharedContract + '\n\n---\n\n' + read(role.prompt),
 }));
-const bundle = { games, studios, concepts, documents, roles, gamesCSV, studiosCSV, research_date: '2026-10-03', ranking_status: 'PENDING_DATA' };
+const bundle = { games, studios, concepts, discoveryGames, documents, roles, gamesCSV, studiosCSV, research_date: '2026-10-03', ranking_status: 'PENDING_DATA' };
 fs.mkdirSync(path.join(root, 'cloudflare/generated'), { recursive: true });
 fs.writeFileSync(path.join(root, 'cloudflare/generated/research.mjs'), '// Generated from repository research. Do not edit.\nexport default ' + JSON.stringify(bundle) + ';\n');
-console.log(`Bundled ${games.length} references, ${studios.length} studios, ${concepts.length} concepts, and ${documents.length} documents.`);
+console.log(`Bundled ${games.length} publisher references, ${discoveryGames.length} discovery references, ${roles.length} roles, ${studios.length} studios, ${concepts.length} concepts, and ${documents.length} documents.`);

@@ -46,7 +46,7 @@ Read only the role context needed for the assignment. Do not load every prompt i
 | [player-feedback-analyst](player-feedback-analyst/prom.md) | studio-liveops | `liveops` |
 | [dashboard-reviewer](dashboard-reviewer/prom.md) | studio-director | `qa` |
 
-The nine dashboard categories already exist in `cloudflare/native/models.mjs`. This change maps specialists to those categories; it does not modify the task API enum or add a worker queue. The dashboard's role browser displays these full contracts and labels them as definitions, not connected processes.
+The nine dashboard role categories already exist in `cloudflare/native/models.mjs`. Specialists map to those categories. The durable queue uses registered role IDs, and Operations reports actual worker heartbeats and jobs separately from the role-contract browser. A visible definition alone is not a connected process.
 
 ## How Claude Code loads them
 
@@ -73,7 +73,6 @@ For a new role, add an explicit parent/category/tool set to the registry, write 
 
 ## Remaining work
 
-See [the repository coverage audit](../docs/REPOSITORY_COVERAGE_AUDIT.md). Worker orchestration, automatic repository synchronization, game-runtime scaffolds, native-ad/export validation, current demand ranking, physical-device evidence and store adapters remain separate engineering or research work.
+See [the repository coverage audit](../docs/REPOSITORY_COVERAGE_AUDIT.md). Queue, worker, isolated candidate integration and game-name bootstrap source now exist. Their live three-Mac acceptance, game-runtime foundations, native-ad/export validation, current demand ranking, physical-device evidence and store adapters remain separate engineering or research work. Start with [the kickoff guide](../docs/START_A_GAME.md) and [worker setup](../docs/WORKER_SETUP.md).
 
 Compatibility reference: [official Claude Code subagent documentation](https://code.claude.com/docs/en/sub-agents), checked 2026-10-03 for file-based definitions and tool allowlists. Verify the installed CLI before using version-dependent features; no SDK, nested-spawn or runtime-success guarantee follows from this reference.
-

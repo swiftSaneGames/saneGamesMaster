@@ -13,14 +13,15 @@ const production = (body = 'ok', init = {}) => new Response(body, {
 const never = () => { throw new Error('upstream must not be called'); };
 
 // No third-party test dependencies or real accounts are used by this suite.
-test('Wrangler resolves the intended Worker entrypoint and name', () => {
+test('Wrangler deploys the native application while this gateway stays historical', () => {
   const cfg = JSON.parse(fs.readFileSync(new URL('../wrangler.jsonc', import.meta.url)));
   assert.equal(cfg.name, 'sanegamesmasterdashboard');
-  assert.equal(cfg.main, 'cloudflare/worker.mjs');
+  assert.equal(cfg.main, 'cloudflare/native/entry.mjs');
   assert.ok(fs.existsSync(new URL('../' + cfg.main, import.meta.url)));
   assert.equal(cfg.keep_vars, true);
   assert.equal(cfg.preview_urls, false);
-  assert.equal(cfg.assets, undefined, 'never publish the repository or demo as assets');
+  assert.equal(cfg.assets.directory, 'cloudflare/public', 'serve only the explicit frontend directory');
+  assert.equal(cfg.assets.run_worker_first, true, 'native authentication must run before asset delivery');
 });
 test('missing configuration returns explicit 503 instead of a fake dashboard', async () => {
   const r = await handleRequest(request(), {}, never);

@@ -1,0 +1,193 @@
+{
+  "server_url": "https://dashboard.sanegames.swiftsane.com",
+  "worker_name": "mac-research-development",
+  "master_root": "/Users/studio/work/saneGamesMaster",
+  "repositories": {
+    "https://github.com/swiftSaneGames/saneGamesMaster": "/Users/studio/work/saneGamesMaster"
+  },
+  "state_root": "/Users/studio/Library/Application Support/SaneGames/worker-1",
+  "artifact_root": "/Users/studio/Library/Application Support/SaneGames/private-artifacts",
+  "capabilities": [
+    "studio-researcher",
+    "reference-player",
+    "market-analyst",
+    "studio-designer",
+    "economy-designer",
+    "content-designer",
+    "studio-architect",
+    "studio-developer",
+    "gameplay-engineer",
+    "save-systems-engineer",
+    "platform-engineer",
+    "studio-art-ux",
+    "asset-artist",
+    "audio-designer"
+  ],
+  "claude_command": "claude",
+  "model": "opus",
+  "model_verified_cli_version": null,
+  "included_plan_verified": false,
+  "effort": null,
+  "max_turns": 30,
+  "job_timeout_seconds": 3600,
+  "poll_seconds": 15,
+  "max_idle_polls": 20,
+  "max_jobs": 10,
+  "refresh_main": true,
+  "allow_integration": false,
+  "integration_checks": {
+    "https://github.com/swiftSaneGames/saneGamesMaster": [
+      [
+        "npm",
+        "test"
+      ],
+      [
+        "python3",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_studio_worker.py"
+      ]
+    ]
+  },
+  "default_integration_checks": [
+    [
+      "python3",
+      "scripts/check_game.py"
+    ]
+  ],
+  "permissions_verified": false,
+  "allowed_tools": {
+    "studio-researcher": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebSearch",
+      "WebFetch"
+    ],
+    "reference-player": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebSearch",
+      "WebFetch"
+    ],
+    "market-analyst": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebSearch",
+      "WebFetch"
+    ],
+    "studio-designer": [
+      "Read",
+      "Glob",
+      "Grep",
+      "Write(./**)",
+      "Edit(./**)"
+    ],
+    "economy-designer": [
+      "Read",
+      "Glob",
+      "Grep",
+      "Write(./**)",
+      "Edit(./**)"
+    ],
+    "content-designer": [
+      "Read",
+      "Glob",
+      "Grep",
+      "Write(./**)",
+      "Edit(./**)"
+    ],
+    "studio-architect": [
+      "Read",
+      "Glob",
+      "Grep",
+      "Write(./**)",
+      "Edit(./**)"
+    ],
+    "studio-developer": [
+      "Read",
+      "Glob",
+      "Grep",
+      "Write(./**)",
+      "Edit(./**)",
+      "Bash(git diff *)",
+      "Bash(git status *)",
+      "Bash(git log *)",
+      "Bash(python3 scripts/check_game.py)",
+      "Bash(npm test)"
+    ],
+    "gameplay-engineer": [
+      "Read",
+      "Glob",
+      "Grep",
+      "Write(./**)",
+      "Edit(./**)",
+      "Bash(git diff *)",
+      "Bash(git status *)",
+      "Bash(git log *)",
+      "Bash(python3 scripts/check_game.py)",
+      "Bash(npm test)"
+    ],
+    "save-systems-engineer": [
+      "Read",
+      "Glob",
+      "Grep",
+      "Write(./**)",
+      "Edit(./**)",
+      "Bash(git diff *)",
+      "Bash(git status *)",
+      "Bash(git log *)",
+      "Bash(python3 scripts/check_game.py)",
+      "Bash(npm test)"
+    ],
+    "platform-engineer": [
+      "Read",
+      "Glob",
+      "Grep",
+      "Write(./**)",
+      "Edit(./**)",
+      "Bash(git diff *)",
+      "Bash(git status *)",
+      "Bash(git log *)",
+      "Bash(python3 scripts/check_game.py)",
+      "Bash(npm test)"
+    ],
+    "studio-art-ux": [
+      "Read",
+      "Glob",
+      "Grep",
+      "Write(./**)",
+      "Edit(./**)"
+    ],
+    "asset-artist": [
+      "Read",
+      "Glob",
+      "Grep",
+      "Write(./**)",
+      "Edit(./**)",
+      "Bash(git diff *)",
+      "Bash(git status *)",
+      "Bash(git log *)",
+      "Bash(python3 scripts/check_game.py)",
+      "Bash(npm test)"
+    ],
+    "audio-designer": [
+      "Read",
+      "Glob",
+      "Grep",
+      "Write(./**)",
+      "Edit(./**)",
+      "Bash(git diff *)",
+      "Bash(git status *)",
+      "Bash(git log *)",
+      "Bash(python3 scripts/check_game.py)",
+      "Bash(npm test)"
+    ]
+  }
+}

@@ -1,5 +1,15 @@
 import { AppError, requireThat, json, allowlist, equal, text, httpsURL } from './security.mjs';
 import { projectInput, STAGES, TASKS, ROLES, gatesPass } from './models.mjs';
+import { JobQueue, workerCredentials } from './jobs.mjs';
+
+function projectRepository(value) {
+  if (!value) return '';
+  const url = httpsURL(value, 'repository', ['github.com']);
+  requireThat(/^https:\/\/github\.com\/swiftSaneGames\/[A-Za-z0-9][A-Za-z0-9._-]{0,99}\/?$/.test(url), 'Repository must belong to swiftSaneGames');
+  const name = url.replace(/\/$/, '').split('/').pop().replace(/\.git$/i, '');
+  requireThat(name.length > 0, 'Invalid repository name');
+  return 'https://github.com/swiftSaneGames/' + name;
+}
 
 /** One SQLite-backed Durable Object per studio. Never exposed as a public URL.
  * All state transitions run synchronously inside a storage transaction. */
@@ -20,6 +30,7 @@ export class StudioStore {
       CREATE INDEX IF NOT EXISTS sessions_expiry ON sessions(expires);
       CREATE INDEX IF NOT EXISTS oauth_expiry ON oauth_states(expires);
       CREATE INDEX IF NOT EXISTS rate_expiry ON rate_limits(expires);`);
+    this.jobs = new JobQueue(this);
   }
   rows(sql, ...args) { return [...this.sql.exec(sql, ...args)]; }
   row(sql, ...args) { return this.rows(sql, ...args)[0]; }
@@ -35,7 +46,7 @@ export class StudioStore {
   }
   async fetch(request) {
     try {
-      const { op, payload = {}, session_hash = '', csrf = '', agent = false } = await request.json();
+      const { op, payload = {}, session_hash = '', csrf = '', agent = false, worker_id = '' } = await request.json();
       const result = this.ctx.storage.transactionSync(() => {
         const now = Math.floor(Date.now() / 1000);
         this.sql.exec('DELETE FROM sessions WHERE expires<=?', now);
@@ -66,8 +77,14 @@ export class StudioStore {
           for (const r of active.slice(8)) this.sql.exec('DELETE FROM sessions WHERE id=?', r.id);
           this.log(u.email, 'signed_in', 'studio'); return { ok: true };
         }
+        if (worker_id) {
+          requireThat(workerCredentials(this.env).some(([id]) => id === worker_id), 'Worker access has been removed', 401);
+          const operations = { worker_heartbeat: 'heartbeat', worker_claim: 'claim', worker_renew: 'renew', worker_complete: 'complete', worker_fail: 'fail', worker_candidate: 'candidate' };
+          requireThat(Object.hasOwn(operations, op), 'Worker cannot perform this operation', 403);
+          return this.jobs[operations[op]](worker_id, payload);
+        }
         const s = agent ? { email: 'intake-agent', role: 'agent' } : this.session(session_hash);
-        if (s.role === 'agent') requireThat(['project_create', 'candidate_create', 'task_update'].includes(op), 'Agent cannot perform this operation', 403);
+        if (s.role === 'agent') requireThat(['project_create', 'candidate_create', 'task_update', 'job_create', 'job_plan'].includes(op), 'Agent cannot perform this operation', 403);
         const readOnly = ['session', 'state', 'export'].includes(op);
         if (!agent && !readOnly) requireThat(equal(s.csrf, csrf), 'Invalid security token. Refresh and try again.', 403);
         return this.dispatch(op, payload, s, session_hash);
@@ -80,16 +97,25 @@ export class StudioStore {
     if (op === 'session') return user;
     if (op === 'logout') { this.sql.exec('DELETE FROM sessions WHERE id=?', sessionHash); this.log(actor, 'signed_out', 'studio'); return { ok: true }; }
     if (op === 'state' || op === 'export') {
-      return { user, projects: this.rows('SELECT data FROM projects').map(r => JSON.parse(r.data)),
+      return { ...this.jobs.state(), user, projects: this.rows('SELECT data FROM projects').map(r => JSON.parse(r.data)),
         tasks: this.rows('SELECT data FROM tasks').map(r => JSON.parse(r.data)),
         releases: this.rows('SELECT data FROM releases ORDER BY rowid DESC LIMIT 200').map(r => JSON.parse(r.data)),
         pins: this.rows('SELECT data FROM pins').map(r => JSON.parse(r.data)),
         events: this.rows('SELECT * FROM audit ORDER BY seq DESC LIMIT ?', op === 'export' ? 2000 : 100).map(r => ({ ...r, details: JSON.parse(r.details) })) };
     }
+    if (op === 'job_create') return this.jobs.enqueue(p, actor);
+    if (op === 'job_plan') return this.jobs.plan(p, actor);
+    if (op === 'job_cancel') return this.jobs.cancel(p.id, actor);
+    if (op === 'job_retry') return this.jobs.retry(p.id, actor);
     if (op === 'project_create') {
       const input = projectInput(p);
+      const repository_url = projectRepository(p.repository_url);
+      if (repository_url) {
+        const existing = this.rows('SELECT data FROM projects').map(r => JSON.parse(r.data)).find(r => projectRepository(r.repository_url).toLowerCase() === repository_url.toLowerCase());
+        if (existing) return { project: existing, idempotent: true, repository_created: false, agents_started: false };
+      }
       requireThat(this.row('SELECT count(*) AS n FROM projects').n < 500, 'Project limit reached; export and archive before expanding');
-      const id = 'p-' + crypto.randomUUID(), project = { ...input, id, stage: 'research', revision: 1, created_at: stamp, updated_at: stamp, repository_url: '', next_update_due: null };
+      const id = 'p-' + crypto.randomUUID(), project = { ...input, id, stage: 'research', revision: 1, created_at: stamp, updated_at: stamp, repository_url, repository_visibility: 'unverified_worker_must_check_private', next_update_due: null };
       this.sql.exec('INSERT INTO projects VALUES(?,?,?)', id, 1, JSON.stringify(project));
       for (const [role, title] of TASKS) {
         const task = { id: 't-' + crypto.randomUUID(), project_id: id, role, title, status: 'queued', note: '', revision: 1, updated_at: stamp };
@@ -101,8 +127,8 @@ export class StudioStore {
       const r = this.read('projects', p.id); requireThat(r.revision === p.revision, 'Another owner changed this project. Refresh first.', 409);
       requireThat(STAGES.includes(p.stage) && (p.stage !== 'live' || r.stage === 'live'), 'Live status requires a recorded store release');
       const u = projectInput(p);
-      const repository_url = p.repository_url ? httpsURL(p.repository_url, 'repository', ['github.com']) : '';
-      if (repository_url) requireThat(/^https:\/\/github\.com\/swiftSaneGames\/[A-Za-z0-9._-]+\/?$/.test(repository_url), 'Repository must belong to swiftSaneGames');
+      const repository_url = projectRepository(p.repository_url);
+      if (repository_url) requireThat(!this.rows('SELECT data FROM projects').map(row => JSON.parse(row.data)).some(other => other.id !== r.id && projectRepository(other.repository_url).toLowerCase() === repository_url.toLowerCase()), 'Another project already uses this repository', 409);
       Object.assign(r, u, { repository_url, stage: p.stage, updated_at: stamp, revision: r.revision + 1 }); this.save('projects', r);
       this.log(actor, 'project_updated', r.id, { stage: r.stage }); return { project: r };
     }
@@ -166,3 +192,4 @@ export class StudioStore {
     throw new AppError(404, 'Unknown studio operation');
   }
 }
+

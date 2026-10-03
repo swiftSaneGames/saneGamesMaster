@@ -1,6 +1,6 @@
-# Studio blueprint — proposed implementation plan
+# Studio blueprint — architecture and acceptance plan
 
-This document proposes the next implementation. It does not claim workers, game generation, store adapters or public deployment already exist. The owner decisions in `REQUIREMENTS_INTERVIEW.md` control conflicts.
+This document describes the implemented coordination framework and the remaining game-production direction. Queue, bootstrap and runner source exist; live deployment and three-Mac acceptance require actual evidence. Game foundations and store adapters remain open. The owner decisions in `REQUIREMENTS_INTERVIEW.md` control conflicts.
 
 ## 1. Recommended technical direction
 
@@ -11,7 +11,7 @@ This document proposes the next implementation. It does not claim workers, game 
 | 3D art | Script-generated simple meshes and an evaluated free DCC tool | Prefer readable low-complexity art. Review license and export pipeline before adding a tool. |
 | UI and document design | Markdown specifications plus available Claude design/artifact features | Design prototypes guide implementation; source specifications remain in Git. |
 | Dashboard | Maintain the current native Cloudflare Worker, SQLite Durable Object and browser frontend | `cloudflare/native/entry.mjs` is the deployment entrypoint; FastAPI/Mac-origin files are legacy. Do not resurrect that topology from historical instructions. |
-| Worker coordination | Python job runner with durable state, per-repo leases and bounded retries | Three existing Macs; no new hosted orchestration purchase. This runner is not implemented yet. |
+| Worker coordination | Python subscription-CLI runner with Cloudflare durable jobs, per-repo leases and bounded retries | Implemented source for the three existing Macs; verify installed tools, identities and live execution before production. |
 | Repository operations | Connected GitHub access or locally configured least-privilege tooling | Direct-to-main, single writer, reviewed diffs and non-force pushes. |
 | Ads and analytics | Explicit native adapter interfaces; test doubles first | No ad-plugin vendor selected. Verify license, SDK versions, consent handling and iOS/Android support in a spike. |
 | Release packaging | Official Android/iOS toolchains; evaluated automation scripts | Separate signing/upload authority from development and owner approval. |

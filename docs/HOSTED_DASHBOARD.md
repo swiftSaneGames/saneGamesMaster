@@ -75,7 +75,7 @@ Production checklist:
 
 ## Boundaries
 
-Approval records are bound to exact candidate manifests. Owner mutations require a session, matching origin and CSRF protection. Approvals require recent authentication. Store publication is owner-recorded, not automatically uploaded or independently verified. Agent orchestration and GitHub synchronization are not connected.
+Approval records are bound to exact candidate manifests. Owner mutations require a session, matching origin and CSRF protection. Approvals require recent authentication. Store publication is owner-recorded, not automatically uploaded or independently verified. Source now includes durable worker orchestration and isolated Git integration; configure and verify the [Mac workers](WORKER_SETUP.md) before claiming they are connected. Operations distinguishes implementation from fresh heartbeats and completed jobs.
 
 Metadata export omits sessions and credentials and is not full disaster recovery. Cloudflare administrators can modify storage; the activity log is not externally immutable. Keep permissions narrow. Do not enable paid services to work around a free-plan limit.
 

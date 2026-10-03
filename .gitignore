@@ -26,6 +26,9 @@ node_modules/
 cloudflare-dist/
 cloudflare/generated/
 .sg-qa/
+.studio/
+.studio-worktrees/
+worker.local.json
 
 # Downloaded OAuth credentials must never enter version control.
 client_secret*.json

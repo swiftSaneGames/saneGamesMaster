@@ -4,7 +4,7 @@ Inspected upstream: `0f0a677f1b2ab2ff431b8c3340523b9b3340c8b7`. Scope: repositor
 
 ## Conclusion
 
-The baseline provides a tested native dashboard and a source-linked research catalog. It does not implement autonomous game production. This first milestone adds 29 detailed role contracts, continuity templates, a registry, generated Claude entrypoints and validation. Executable coordination, game bootstrap, skills and worker code form the next milestone; their source presence must remain separate from deployment and connected-machine status.
+The baseline provided a tested native dashboard and a source-linked research catalog. The completed framework work adds 29 detailed role contracts, continuity templates, a registry, generated Claude entrypoints, project skills/hooks, durable coordination, game bootstrap/start tooling, a Mac worker and dashboard operations. Source presence and local tests remain separate from deployment and connected-machine status. This is a tested framework, not evidence that an entire mobile game has been produced or published autonomously.
 
 ## Coverage
 
@@ -44,6 +44,19 @@ The intake helper retains a historical default hostname. Always pass explicit `-
 | Agent contract validation | 29 roles passed | Coverage/topology/definition drift, not actual Claude execution. |
 
 Independent reviewers checked all role contracts and supporting infrastructure. They identified bootstrap reference portability, pre-repository research circularity, unavailable rendering tools and unnamed signing ownership. Shared reference resolution, pre-bootstrap assignments, scoped execution tools and an explicit signing-operator dependency address those documentation gaps.
+
+## Framework implementation after the baseline
+
+- Added a game-name launch contract with department routing, durable checkpoints, bounded repairs and final exact-build review. Every registered agent has its own complete `prom.md`.
+- Implemented private repository bootstrap and idempotent kickoff, including verified initial source integration and authenticated project/pipeline intake.
+- Added durable jobs, dependencies, expiring repository leases, monotonic fences, separate machine credentials and structured evidence. Two automatic QA repair cycles refresh development, launch materials, compliance and QA: at most eight additional repair jobs.
+- Implemented a Python subscription-CLI runner with explicit plan/doctor mode, isolated worktrees, private dependency artifacts, exact candidate hashes, guarded integration and release-candidate handoff. The designated writer runs configured checks and verifies remote source identity.
+- Added Operations controls and searchable, paginated discovery. The catalog contains 500 directly verified Google Play listing identities, explicitly unranked and requiring gameplay-fit research. Existing publisher research remains distinct.
+- Added four project skills and narrow local hooks, plus Claude Design handoff guidance, model/allowance checks and optional supported Ultracode configuration.
+
+Independent review identified and drove fixes for missing implementation context in launch/compliance, absent dashboard candidate handoff, repair-capacity rollback, weak provenance, silent genre changes, whitespace corruption in patches, Git-hook changes after QA and unreviewed staged files. Root review also restored the supplied game name and brief to every queued assignment. These are concrete regressions to retain, not reasons to trust all future generated work.
+
+Current verification and its operational limits are recorded in [HOSTED_TESTING.md](HOSTED_TESTING.md). Remaining production capability work has detailed acceptance criteria in [issues 1–6](IMPLEMENTATION_ROADMAP.md).
 
 ## Unresolved decisions and configuration
 

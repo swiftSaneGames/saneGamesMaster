@@ -84,7 +84,7 @@ The current manifest requires exactly these eight gate keys:
 
 Release preparer assembles the immutable source commit, both artifact URLs/hashes, evidence, blocking issue count and launch summary. Read the actual schema before producing a candidate. The dashboard checks reported structure/status; it cannot prove every external report true. The owner alone approves exact builds and materials through the private dashboard. Do not fabricate approval, use owner cookies, edit production approval data or treat an earlier approval as reusable after a material change.
 
-There is no implemented store publisher or distributed worker runner in the inspected baseline. Preparation is not upload. A future authorized publisher must verify current approval, recompute artifact hashes, prevent duplicate submissions and record store responses. Until implemented and validated, mark upload `not_run` and hand off to the authorized operator. Every update follows the same quality and owner gate.
+The repository implements the durable queue and a subscription-CLI Mac worker in `scripts/studio_worker.py`; deployment and connected-machine acceptance remain separate. It does not implement a store publisher. Preparation is not upload. A future authorized publisher must verify current approval, recompute artifact hashes, prevent duplicate submissions and record store responses. Until implemented and validated, mark upload `not_run` and hand off to the authorized operator. Every update follows the same quality and owner gate.
 
 ## 7. Integration and security
 

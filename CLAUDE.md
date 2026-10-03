@@ -9,11 +9,11 @@ For role work, start with `prom.md`, read `agents/COMMON.md` and your complete `
 ## Agreed operating model
 
 - The portfolio ambition is 100 finished games. Sixty days is aspirational; never ship failed or unfinished work to satisfy it.
-- Primary genres: business simulation and idle management. Decision games, puzzles and arcade games are also allowed. Large multiplayer shooters are out of scope.
+- Primary genres: business simulation and idle management. Small adventure, arcade, solo board/card, casual, educational, music/rhythm, puzzle and approachable strategy games are also allowed. Exclude FPS, battle royale and competitive-first multiplayer.
 - Start from original code and legitimately licensed components. Competitor games are references, not assets or source code to extract.
 - Three Macs are available. One Claude Max 20x subscription is shared. No paid API fallback, paid cloud, paid assets or contractors without a new owner decision.
 - Existing hardware, the Claude subscription, a domain and store enrollment are available. Do not interpret these as permission to purchase other services.
-- Each game has a separate **private** repository. Reusable master code and generic operating documents are **public**.
+- Each game has a separate **private** repository. Reusable master code and generic operating documents are public-suitable; preserve the master's existing private visibility.
 - Use direct commits to main. One designated writer serializes pushes per repository. Use isolated working copies for parallel agents. Review, tests, a diff check and secret checks still precede each push.
 - Never force-push, discard another agent's work or overwrite an unknown remote history. Fetch and reconcile before pushing. No CI deployment on every main commit.
 - Agents evaluate concepts, prototypes and architecture without human approval checkpoints. The owner supplies optional gameplay recordings when reference evidence is insufficient.
@@ -47,4 +47,4 @@ No credentials, signing keys, production databases, game binaries, private manif
 
 ## Current work queue
 
-Keep the native dashboard and its tested local build usable. Verify real sign-in, production isolation and restoration through authorized operational checks; source code alone does not establish deployment state. Implement repository automation only through configured access; do not reuse exposed credentials. Detailed role prompts and a source-linked catalog exist. Worker orchestration, store adapters, validated game runtime templates, real device evidence and demand-ranked research remain unfinished. Documentation bootstrap templates are not an implemented game engine scaffold. Follow the coverage audit for concrete gaps.
+Keep the native dashboard and its tested local build usable. Verify real sign-in, production isolation and restoration through authorized operational checks; source code alone does not establish deployment state. Run repository automation only through configured access; do not reuse exposed credentials. Detailed role prompts, project skills/hooks, a source-linked catalog, durable orchestration, game bootstrap and a Mac worker exist in source. Live worker acceptance, store adapters, validated game runtime foundations, real device evidence and demand-ranked research remain unfinished. Documentation bootstrap templates are not an implemented game engine scaffold. Follow the coverage audit and implementation roadmap for concrete gaps.

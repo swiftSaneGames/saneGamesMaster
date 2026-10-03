@@ -1,6 +1,6 @@
 # Agent organization and handoffs
 
-These are role contracts for Claude Code, not deployed agents or a functioning scheduler. Read `CLAUDE.md`, the full interview and the proposed blueprint before executing. Claude Code supports file-defined subagents; verify the installed version and supported tool names. [Official subagent documentation](https://code.claude.com/docs/en/sub-agents).
+These role contracts connect to the implemented Cloudflare queue and Python worker. Their presence does not establish deployment or connected agents. Read `CLAUDE.md`, the full interview and the blueprint before executing. Claude Code supports file-defined subagents; verify the installed version and supported tool names. [Official subagent documentation](https://code.claude.com/docs/en/sub-agents).
 
 ## Responsibilities
 
@@ -34,6 +34,6 @@ SayGames' 2023 My Perfect Hotel case describes iteration and hybrid-casual devel
 
 Our adaptation is deterministic testing, a small work queue, reusable systems and owner-approved releases. Paid-user-acquisition testing from larger publishers is not included in this budget.
 
-## Unimplemented infrastructure
+## Implementation and operational acceptance
 
-A durable job queue, distributed leases, audit ingestion, game-repository bootstrap, store adapters, DNS/TLS deployment, and automatic 30-day scheduling still require engineering. The new prompt files provide instructions only. No agent may claim these exist merely because this document describes them.
+The native backend implements durable jobs, dependencies, repository leases, fencing, bounded retries and authenticated worker reporting. Bootstrap/start tools prepare private game repositories; the Mac runner uses isolated candidates and one integration writer. Read the setup guides and verify deployment, identities, shared artifacts and actual machine execution before reporting the studio operational. Store adapters, hosted restoration, validated game foundations and recurring thirty-day job scheduling remain open work in the implementation roadmap.
