@@ -1,0 +1,2 @@
+feature_id,area,player_job,capability,priority,evidence_strength,reference_ids,sanegames_decision,originality_note,acceptance_metric,status,notes
+RF-001,core_loop,,must,high,,differentiate,,,not_started,
