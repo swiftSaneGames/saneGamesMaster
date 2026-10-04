@@ -17,3 +17,12 @@ Read `CLAUDE.md`, `agents/COMMON.md`, `agents/release-preparer/prom.md`, `agents
 7. Record the actual candidate ID/status when returned. Hand off to the owner-facing dashboard review. Mark store upload pending until the authorized operator separately verifies current approval and the actual artifact bytes.
 
 Return a per-gate evidence table, exact candidate identities, blockers, private review-pack references, performed checks, actual intake state, and checkpoint. A changed material candidate needs fresh applicable evidence and owner approval. Every update repeats this process. Preparation does not schedule a release, authorize marketing posts, or install a publishing worker.
+## Execution contract
+
+**Entry:** an integrated source SHA plus exact Android/iOS candidate artifacts and their available evidence. An unintegrated patch, mutable “latest” build link, or missing artifact identity cannot enter release review.
+
+**Exit:** `owner_review_pending` only after both artifact hashes, source identity, launch-pack revision and all eight gate statuses are bound into the current manifest and the server confirms the candidate awaits review. Any failed/not-run required gate returns `release_blocked`; never downgrade it to a warning.
+
+**Stop conditions:** stop on artifact/hash mismatch, superseded candidate, stale evidence, blocking defect, missing platform build, changed launch disclosure, or uncertain intake mutation. Reconcile before retrying.
+
+**Handoff envelope:** project/version, source SHA, Android/iOS hashes and private references, eight gate evidence IDs/statuses, blocking issues, known nonblocking issues, launch-pack revision, intake/candidate ID if confirmed, approval state, stale-on-change rules and exact next operator action.
