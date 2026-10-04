@@ -82,7 +82,7 @@ QA preserves the candidate unchanged and must return a substantive `report` thro
 
 ## Progress in the dashboard
 
-The runner reports lifecycle steps and, for roles with existing write permission, relays validated `.studio/progress.json` updates. Model credentials remain outside the subprocess. Current backend/runner versions are required; an unavailable progress endpoint stops before launching Claude. See [how Claude reads work and reports progress](CLAUDE_DASHBOARD_WORKFLOW.md) for the owner workflow, progress schema, limits and retention. Read-only roles keep their existing permissions and return detailed findings through the final result channel.
+The runner reports lifecycle steps and, for roles with existing write permission, relays validated `.studio/progress.json` updates. Worker API credentials remain outside Claude's subprocess. Current backend/runner versions are required; an unavailable progress endpoint stops before launching Claude. See [how Claude reads work and reports progress](CLAUDE_DASHBOARD_WORKFLOW.md) for the owner workflow, progress schema, limits and retention. Read-only roles keep their existing permissions and return detailed findings through the final result channel.
 
 ## Structured result channel
 
