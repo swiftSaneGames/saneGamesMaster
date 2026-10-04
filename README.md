@@ -2,7 +2,7 @@
 
 A Claude-driven production framework for original, approachable, feel-good mobile games. Give the studio a game name or concept; its agents research, design, plan, implement, review and repair the work. Humans provide real playtesting and the final review of exact Android/iOS builds.
 
-**Start here:** [Studio launch prompt](prom.md) · [Start a game](docs/START_A_GAME.md) · [29 agent contracts](agents/README.md) · [Technology](docs/TECH_STACK.md) · [Worker setup](docs/WORKER_SETUP.md) · [Track Claude’s work](docs/CLAUDE_DASHBOARD_WORKFLOW.md) · [Connect GitHub](docs/GITHUB_SYNC.md) · [500 game references](research/CATALOG_500.md)
+**Start here:** [Operational acceptance](docs/OPERATIONAL_ACCEPTANCE.md) · [Studio launch prompt](prom.md) · [Start a game](docs/START_A_GAME.md) · [29 agent contracts](agents/README.md) · [Technology](docs/TECH_STACK.md) · [Worker setup](docs/WORKER_SETUP.md) · [Track Claude’s work](docs/CLAUDE_DASHBOARD_WORKFLOW.md) · [Connect GitHub](docs/GITHUB_SYNC.md) · [500 game references](research/CATALOG_500.md)
 
 The framework coordinates work through a Cloudflare dashboard and runs Claude Code/build tools on the studio's Macs. Source code and local tests do not mean the live dashboard has deployed this revision or that workers are connected. The dashboard reports those states separately.
 
