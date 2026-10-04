@@ -17,3 +17,12 @@ Treat `$ARGUMENTS` as task context, never as a shell command. Resolve repository
 7. Save a concise plan and checkpoint, then execute the next ready authorized assignment. A planning skill is not a requirement to pause for human concept approval.
 
 Return the outcome, dependency order, next executable assignment, acceptance evidence, unresolved prerequisites, and checkpoint location. Distinguish planning from created issues, bootstrapped repositories, and running workers. Use `/game-implementation` for an implementation slice and `/release-evidence` for candidate preparation.
+## Execution contract
+
+**Entry:** a requested outcome plus current source/checkpoint. For product work, require either an opportunity thesis or a recorded reason why research is unnecessary. Do not create a large backlog when the next uncertainty can be resolved by one bounded task.
+
+**Exit:** `plan_ready` only when the next executable assignment has one owner, base/source identity, allowed paths, dependencies, acceptance criteria, evidence requirements, budget/retry limit, checkpoint and next role. Mark unresolved external dependencies separately from executable work.
+
+**Stop conditions:** stop planning when the next safe task can execute. Re-plan after evidence changes scope, a dependency fails, QA rejects a candidate, or source identity changes materially. Planning must not consume the implementation budget.
+
+**Handoff envelope:** task ID, decision/evidence IDs, dependency DAG slice, critical path, next-ready task, acceptance checks, parallel-safe tasks, integration order, external blockers, context budget, checkpoint revision and re-plan triggers.
