@@ -19,3 +19,12 @@ Read `CLAUDE.md`, `agents/COMMON.md`, `agents/studio-art-ux/prom.md`, and `docs/
 If Design access is unavailable, deliver the complete brief, existing references, proposed output locations, required export contents, exact access blocker, and the next operator action. Continue unaffected engineering. Label the result `design_handoff_pending`; do not silently claim Design ran or replace the owner's primary tool preference.
 
 Persist the private handoff, asset provenance and checkpoint under the established game layout. Return separate states for design prepared, Design inspected, export received, code implemented, and device-tested. No design artifact proves fun, performance, store readiness, or final release approval.
+## Execution contract
+
+**Entry:** a game/feature brief with player action, target layouts and evidence-backed visual problem. A competitor screenshot may inform analysis but must not become a reproduction target or shipped asset.
+
+**Exit:** `design_ready` only when the handoff identifies exact states, responsive/touch behavior, accessibility, motion, asset provenance, implementation tokens/components, snapshot identity and unresolved questions. Use `design_handoff_pending` when the selected Design capability is unavailable.
+
+**Stop conditions:** stop visual exploration when the implementation contract covers the assigned flow and additional variants do not answer an acceptance criterion. Do not spend shared allowance generating cosmetic alternatives without a decision question.
+
+**Handoff envelope:** design revision/hash where available, state IDs, component/token IDs, required assets and licenses, phone/tablet rules, accessibility/motion constraints, comparison criteria, unresolved states, implementation owner and QA comparison cases.
