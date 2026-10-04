@@ -43,7 +43,10 @@ jobs:
       - name: Unit regression
         run: npm run build && node --test --test-reporter=spec tests/native/*.test.mjs
       - name: Validate agent contracts and generated definitions
-        run: python3 scripts/validate_agents.py && python3 scripts/sync_agent_definitions.py --check
+        run: |
+          python3 scripts/validate_agents.py
+          python3 scripts/sync_agent_definitions.py --check
+          python3 scripts/validate_skills.py
       - name: Validate research and discovery catalogs
         run: python3 scripts/validate_research.py && python3 scripts/validate_catalog_500.py
       - name: Check bootstrap, worker, kickoff and hook behavior
