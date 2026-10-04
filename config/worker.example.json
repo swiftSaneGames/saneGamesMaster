@@ -188,6 +188,136 @@
       "Bash(git log *)",
       "Bash(python3 scripts/check_game.py)",
       "Bash(npm test)"
+    ],
+    "security-reviewer": [
+      "Read",
+      "Glob",
+      "Grep",
+      "Bash(git diff *)",
+      "Bash(git status *)",
+      "Bash(git log *)",
+      "Bash(python3 scripts/check_game.py)",
+      "Bash(npm test)"
+    ],
+    "studio-qa": [
+      "Read",
+      "Glob",
+      "Grep",
+      "Bash(git diff *)",
+      "Bash(git status *)",
+      "Bash(git log *)",
+      "Bash(python3 scripts/check_game.py)",
+      "Bash(npm test)"
+    ],
+    "device-tester": [
+      "Read",
+      "Glob",
+      "Grep",
+      "Bash(git diff *)",
+      "Bash(git status *)",
+      "Bash(git log *)",
+      "Bash(python3 scripts/check_game.py)",
+      "Bash(npm test)"
+    ],
+    "performance-tester": [
+      "Read",
+      "Glob",
+      "Grep",
+      "Bash(git diff *)",
+      "Bash(git status *)",
+      "Bash(git log *)",
+      "Bash(python3 scripts/check_game.py)",
+      "Bash(npm test)"
+    ],
+    "uat-coordinator": [
+      "Read",
+      "Glob",
+      "Grep"
+    ],
+    "store-compliance": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebSearch",
+      "WebFetch"
+    ],
+    "dashboard-reviewer": [
+      "Read",
+      "Glob",
+      "Grep",
+      "Bash(npm test)"
+    ],
+    "integration-writer": [
+      "Read",
+      "Glob",
+      "Grep",
+      "Write(./**)",
+      "Edit(./**)",
+      "Bash(git diff *)",
+      "Bash(git status *)",
+      "Bash(git log *)",
+      "Bash(python3 scripts/check_game.py)",
+      "Bash(npm test)"
+    ],
+    "release-preparer": [
+      "Read",
+      "Glob",
+      "Grep",
+      "Write(./**)",
+      "Edit(./**)",
+      "Bash(git diff *)",
+      "Bash(git status *)",
+      "Bash(git log *)",
+      "Bash(python3 scripts/check_game.py)",
+      "Bash(npm test)"
+    ],
+    "launch-marketer": [
+      "Read",
+      "Glob",
+      "Grep",
+      "Write(./**)",
+      "Edit(./**)",
+      "Bash(git diff *)",
+      "Bash(git status *)",
+      "Bash(git log *)",
+      "Bash(python3 scripts/check_game.py)",
+      "Bash(npm test)"
+    ],
+    "repository-bootstrapper": [
+      "Read",
+      "Glob",
+      "Grep",
+      "Write(./**)",
+      "Edit(./**)",
+      "Bash(git diff *)",
+      "Bash(git status *)",
+      "Bash(git log *)",
+      "Bash(python3 scripts/check_game.py)",
+      "Bash(npm test)"
+    ],
+    "studio-producer": [
+      "Read",
+      "Glob",
+      "Grep",
+      "Write(./**)",
+      "Edit(./**)"
+    ],
+    "studio-liveops": [
+      "Read",
+      "Glob",
+      "Grep",
+      "Write(./**)",
+      "Edit(./**)"
+    ],
+    "player-feedback-analyst": [
+      "Read",
+      "Glob",
+      "Grep",
+      "Bash(git diff *)",
+      "Bash(git status *)",
+      "Bash(git log *)",
+      "Bash(python3 scripts/check_game.py)",
+      "Bash(npm test)"
     ]
   }
 }
