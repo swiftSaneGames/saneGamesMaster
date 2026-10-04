@@ -45,6 +45,9 @@ for path in skill_files:
     if path.parent.name!=name: err(f"{path.relative_to(ROOT)}: folder/name mismatch")
     if not d or len(d.group(1).strip())<20: err(f"{name}: description too short/missing")
     if len(body.strip())<500: err(f"{name}: skill body unexpectedly short")
+    for heading in ("## Execution contract", "**Entry:**", "**Exit:**", "**Stop conditions:**", "**Handoff envelope:**"):
+        if heading not in body:
+            err(f"{name}: missing execution-contract element {heading}")
 
 # Slash references between project-local skills must resolve.
 for name,path in names.items():
