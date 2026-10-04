@@ -64,3 +64,15 @@ The owner requested a white, practical production workspace and a way to see Cla
 The browser/operator records and identity provider are synthetic. No live Claude process, real device test, production sign-in, Cloudflare deployment, email notification or store submission formed part of these local checks. The UI does not treat progress as independently verified completion. Server history is bounded to 40 events per job and 400 across the studio; private checkpoints retain long-term context.
 
 CI now runs the full three browser fixtures with pinned Playwright in addition to static checks and the native/workerd tests. A workflow result and deployment acceptance are separate. See [Claude/dashboard workflow](CLAUDE_DASHBOARD_WORKFLOW.md) for the initial Mac/backend connection and owner tracking paths.
+
+## GitHub repository connection — 2026-10-04
+
+The next revision replaces the hardcoded GitHub integration status with authenticated, read-only organization metadata synchronization, durable snapshots, a private game repository picker and source metadata in the game workspace.
+
+- **192 native tests passed**, including 24 GitHub cases for owner/CSRF boundaries, fixed read endpoints, pagination and capacity, safe errors, response bounds/timeouts, credential changes, stale history, concurrent attempts and SQLite persistence.
+- **Real local workerd checks passed** with the new integration module and storage table present.
+- **All four full Chromium fixtures passed**: operations, responsive dashboard, native operator workflows and the new GitHub synchronization flow.
+- The GitHub browser flow covers synchronization from Settings, selected repository submission, failed/stale/unconfigured states, mobile controls, unsaved draft preservation and a delayed older-state response that must not overwrite a successful synchronization.
+- Independent review checked the backend, UI and activation guide; identified metadata-name and refresh-race issues were fixed before integration.
+
+GitHub/provider responses in these tests are synthetic. No production GitHub runtime token or Cloudflare deployment credentials were available in the execution environment. There is no claim of a live private-repository connection. See [the activation guide](GITHUB_SYNC.md); the signed-in dashboard must show the expected private repositories and a successful sync time after deployment.

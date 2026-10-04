@@ -16,6 +16,8 @@ Repository swiftSaneGames/saneGamesMaster; production branch main; root `/`; bui
 
 Deploy the new source commit, not a retry of an old pinned build. A successful build does not prove Google account authentication works.
 
+For the optional repository picker and read-only GitHub metadata connection, configure the `GITHUB_TOKEN` runtime secret and verify it in Settings using [Connect GitHub](GITHUB_SYNC.md). The chat's GitHub connection and a source push do not install that secret in Cloudflare.
+
 ## Google sign-in: client-secret blocker fixed
 
 The sign-in page now supports Google Identity Services ID tokens when `GOOGLE_CLIENT_SECRET` is absent. This flow uses the public web-client ID already in wrangler.jsonc. It does not exchange authorization codes, require a client secret, or bypass authentication.

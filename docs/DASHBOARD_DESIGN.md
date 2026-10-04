@@ -38,6 +38,7 @@ The supplied 60 × 60 mascot stays unchanged at `cloudflare/public/assets/studio
 - Review feedback and any follow-up assignment remain explicit records. A request for changes alone is not a running repair.
 - Do not display estimated costs, model utilization, fabricated completion percentages or scheduled ETAs without a supported source.
 - Empty, unavailable and stale states must be distinguishable. Filters need visible state and a clear way to reset.
+- GitHub metadata is a timestamped, read-only snapshot of accessible organization repositories. Settings provides explicit synchronization and setup guidance; the game form can select eligible private repositories. Failed, stale, unverified and unconfigured connections must remain distinct. Synchronization never rewrites an existing game link or proves that a worker can clone it. See [GitHub connection](GITHUB_SYNC.md).
 
 ## Verification and deployment
 

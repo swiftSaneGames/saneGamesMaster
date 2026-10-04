@@ -1,6 +1,7 @@
 import { AppError, requireThat, json, allowlist, equal, text, httpsURL } from './security.mjs';
 import { projectInput, STAGES, TASKS, ROLES, gatesPass } from './models.mjs';
 import { JobQueue, workerCredentials } from './jobs.mjs';
+import { GitHubSnapshot, githubCredential } from './github.mjs';
 
 function projectRepository(value) {
   if (!value) return '';
@@ -31,6 +32,7 @@ export class StudioStore {
       CREATE INDEX IF NOT EXISTS oauth_expiry ON oauth_states(expires);
       CREATE INDEX IF NOT EXISTS rate_expiry ON rate_limits(expires);`);
     this.jobs = new JobQueue(this);
+    this.github = new GitHubSnapshot(this);
   }
   rows(sql, ...args) { return [...this.sql.exec(sql, ...args)]; }
   row(sql, ...args) { return this.rows(sql, ...args)[0]; }
@@ -47,6 +49,7 @@ export class StudioStore {
   async fetch(request) {
     try {
       const { op, payload = {}, session_hash = '', csrf = '', agent = false, worker_id = '' } = await request.json();
+      const credential = ['state', 'export', 'github_begin', 'github_finish'].includes(op) ? await githubCredential(this.env) : null;
       const result = this.ctx.storage.transactionSync(() => {
         const now = Math.floor(Date.now() / 1000);
         this.sql.exec('DELETE FROM sessions WHERE expires<=?', now);
@@ -87,21 +90,25 @@ export class StudioStore {
         if (s.role === 'agent') requireThat(['project_create', 'candidate_create', 'task_update', 'job_create', 'job_plan'].includes(op), 'Agent cannot perform this operation', 403);
         const readOnly = ['session', 'state', 'export'].includes(op);
         if (!agent && !readOnly) requireThat(equal(s.csrf, csrf), 'Invalid security token. Refresh and try again.', 403);
-        return this.dispatch(op, payload, s, session_hash);
+        return this.dispatch(op, payload, s, session_hash, credential);
       });
       return json(result);
     } catch (error) { if (error instanceof AppError) return json({ error: error.message, code: error.code }, error.status); return json({ error: 'Studio storage is temporarily unavailable', code: 'storage_error' }, 503); }
   }
-  dispatch(op, p, user, sessionHash) {
+  dispatch(op, p, user, sessionHash, credential) {
     const actor = user.email, stamp = new Date().toISOString();
     if (op === 'session') return user;
     if (op === 'logout') { this.sql.exec('DELETE FROM sessions WHERE id=?', sessionHash); this.log(actor, 'signed_out', 'studio'); return { ok: true }; }
     if (op === 'state' || op === 'export') {
-      return { ...this.jobs.state(), user, projects: this.rows('SELECT data FROM projects').map(r => JSON.parse(r.data)),
+      return { ...this.jobs.state(), github: this.github.view(credential), user, projects: this.rows('SELECT data FROM projects').map(r => JSON.parse(r.data)),
         tasks: this.rows('SELECT data FROM tasks').map(r => JSON.parse(r.data)),
         releases: this.rows('SELECT data FROM releases ORDER BY rowid DESC LIMIT 200').map(r => JSON.parse(r.data)),
         pins: this.rows('SELECT data FROM pins').map(r => JSON.parse(r.data)),
         events: this.rows('SELECT * FROM audit ORDER BY seq DESC LIMIT ?', op === 'export' ? 2000 : 100).map(r => ({ ...r, details: JSON.parse(r.details) })) };
+    }
+    if (op === 'github_begin' || op === 'github_finish') {
+      requireThat(user.role === 'owner', 'Only an owner can sync GitHub metadata', 403);
+      return op === 'github_begin' ? this.github.begin(p, credential, actor) : this.github.finish(p, credential, actor);
     }
     if (op === 'job_create') return this.jobs.enqueue(p, actor);
     if (op === 'job_plan') return this.jobs.plan(p, actor);

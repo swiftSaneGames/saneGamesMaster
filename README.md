@@ -2,7 +2,7 @@
 
 A Claude-driven production framework for original, approachable, feel-good mobile games. Give the studio a game name or concept; its agents research, design, plan, implement, review and repair the work. Humans provide real playtesting and the final review of exact Android/iOS builds.
 
-**Start here:** [Studio launch prompt](prom.md) · [Start a game](docs/START_A_GAME.md) · [29 agent contracts](agents/README.md) · [Technology](docs/TECH_STACK.md) · [Worker setup](docs/WORKER_SETUP.md) · [Track Claude’s work](docs/CLAUDE_DASHBOARD_WORKFLOW.md) · [500 game references](research/CATALOG_500.md)
+**Start here:** [Studio launch prompt](prom.md) · [Start a game](docs/START_A_GAME.md) · [29 agent contracts](agents/README.md) · [Technology](docs/TECH_STACK.md) · [Worker setup](docs/WORKER_SETUP.md) · [Track Claude’s work](docs/CLAUDE_DASHBOARD_WORKFLOW.md) · [Connect GitHub](docs/GITHUB_SYNC.md) · [500 game references](research/CATALOG_500.md)
 
 The framework coordinates work through a Cloudflare dashboard and runs Claude Code/build tools on the studio's Macs. Source code and local tests do not mean the live dashboard has deployed this revision or that workers are connected. The dashboard reports those states separately.
 
@@ -26,6 +26,7 @@ The launch prompt explains role routing, repository creation, design decisions, 
 | Cloud coordination | Durable jobs, dependencies, idempotency, bounded retries, expiring repository leases and fencing. |
 | Worker execution | Opt-in subscription CLI runner, repository checks, isolated candidates, structured results and private artifacts. |
 | Operations dashboard | [Studio interface](docs/DASHBOARD_DESIGN.md), worker freshness, job states, task creation, evidence inspection, pipeline start and repair controls. |
+| GitHub discovery | [Read-only repository synchronization](docs/GITHUB_SYNC.md), private game repository selection and timestamped source metadata after runtime setup. |
 | Design workflow | Claude Design as the primary visual/prototype workflow, with explicit implementation/export handoffs. |
 | Project skills/hooks | Planning, design, implementation and release-evidence skills; session reminders and narrow sensitive-file checks. |
 | Research | 500 directly verified Play listing identities, plus the earlier 100-reference publisher study. |

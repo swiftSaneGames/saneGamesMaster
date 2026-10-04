@@ -607,3 +607,16 @@ dialog::backdrop { background: #2534435c; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
 }
+
+/* Read-only GitHub connection and repository metadata. */
+.github-facts { display: grid; grid-template-columns: minmax(130px, .65fr) minmax(0, 1.35fr); gap: 10px 18px; margin: 18px 0; font-size: 12px; }
+.github-facts dt { color: var(--muted); }
+.github-facts dd { margin: 0; overflow-wrap: anywhere; }
+.github-repository-picker { border: 1px solid var(--line); border-radius: 5px; padding: 14px; margin-bottom: 16px; background: #fff; }
+.github-picker-heading { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
+.github-picker-heading label { margin: 0; }
+.github-repository-picker select { width: 100%; }
+.github-repository-picker small { display: block; margin-top: 8px; }
+.github-picker-error { color: #9b3434; font-size: 12px; line-height: 1.5; overflow-wrap: anywhere; }
+.repository-metadata .panel-head p { overflow-wrap: anywhere; }
+@media (max-width: 600px) { .github-facts { grid-template-columns: 1fr; gap: 5px; } .github-facts dd { margin-bottom: 8px; } }

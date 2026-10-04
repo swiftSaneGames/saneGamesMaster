@@ -4,6 +4,7 @@ import { AppError, requireThat, json, random, sha256, challenge, canonical, cook
 import { manifestInput } from './models.mjs';
 import { googleStatus, googleLoginHeaders, createGoogleID } from './google-id.mjs';
 import { authenticatedWorker } from './jobs.mjs';
+import { githubCredential, fetchGitHubRepositories } from './github.mjs';
 export { StudioStore };
 const SESSION = '__Host-sg-session', OAUTH = '__Host-sg-oauth';
 const publicAssets = new Set(['/assets/style.css', '/assets/app.js', '/assets/login.js', '/assets/google-login.css', '/assets/studio-mascot.png']);
@@ -117,7 +118,7 @@ export function createHandler(providerFetch = (...args) => fetch(...args)) {
       const user = await call(env, 'session', {}, sessionHash);
       if (method === 'GET' && path === '/api/state') {
         const state = await call(env, 'state', {}, sessionHash);
-        return secure(json({ ...state, hosting: 'Cloudflare Workers + SQLite Durable Objects', app_origin: appOrigin, integrations: { google_sso: true, hosted_database: true, agent_intake: Boolean(env.INTAKE_TOKEN?.length >= 40), github_sync: false, mac_workers: state.workers.some(w => w.online), durable_job_queue: true, store_publishing: false }, allowed_emails: allowlist(env) }));
+        return secure(json({ ...state, hosting: 'Cloudflare Workers + SQLite Durable Objects', app_origin: appOrigin, integrations: { google_sso: true, hosted_database: true, agent_intake: Boolean(env.INTAKE_TOKEN?.length >= 40), github_sync: state.github.status === 'connected', mac_workers: state.workers.some(w => w.online), durable_job_queue: true, store_publishing: false }, allowed_emails: allowlist(env) }));
       }
       if (method === 'GET' && path === '/api/catalog') return secure(json({ games: research.games, discovery_games: research.discoveryGames || [], discovery_note: 'Curated discovery references, not a verified download ranking.', studios: research.studios, concepts: research.concepts, documents: research.documents.map(({ content, ...meta }) => meta), roles: research.roles, research_date: research.research_date, ranking_status: research.ranking_status }));
       if (method === 'GET' && path.startsWith('/api/docs/')) { const d = research.documents.find(d => d.id === path.slice('/api/docs/'.length)); requireThat(d, 'Document not found', 404); return secure(json(d)); }
@@ -130,6 +131,19 @@ export function createHandler(providerFetch = (...args) => fetch(...args)) {
       requireThat(request.headers.get('Origin') === appOrigin && equal(csrf, user.csrf), 'Request origin or security token is invalid', 403);
       const writeKey = await sha256(user.sub + ':write'); await call(env, 'rate', { key: writeKey, limit: 60 });
       const body = await readJSON(request); let result;
+      if (path === '/api/github/sync' && method === 'POST') {
+        requireThat(Object.keys(body).length === 0, 'GitHub sync accepts no credentials, URLs or options');
+        await call(env, 'rate', { key: await sha256(user.sub + ':github-sync'), limit: 2 });
+        const credential = await githubCredential(env), token = env.GITHUB_TOKEN;
+        const pending = await call(env, 'github_begin', { credential_hash: credential.hash }, sessionHash, csrf);
+        let repositories;
+        try { repositories = await fetchGitHubRepositories(token, providerFetch); }
+        catch (error) {
+          await call(env, 'github_finish', { credential_hash: credential.hash, generation: pending.generation, error_code: error instanceof AppError ? error.code : 'github_provider_unavailable' }, sessionHash, csrf);
+          throw error;
+        }
+        return secure(json(await call(env, 'github_finish', { credential_hash: credential.hash, generation: pending.generation, repositories }, sessionHash, csrf)));
+      }
       if (path === '/auth/logout' && method === 'POST') { await call(env, 'logout', {}, sessionHash, csrf); return secure(json({ ok: true }, 200, { 'Set-Cookie': cookie(SESSION, '', 0) })); }
       else if (path === '/api/jobs' && method === 'POST') result = await call(env, 'job_create', body, sessionHash, csrf);
       else if (/^\/api\/projects\/p-[a-f0-9-]+\/plan$/.test(path) && method === 'POST') result = await call(env, 'job_plan', { ...body, id: path.split('/')[3] }, sessionHash, csrf);
