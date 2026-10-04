@@ -135,3 +135,12 @@ Return sample size, source mix, top themes, thin evidence, top opportunities, re
 ## Handoff
 
 Send the thesis to `studio-researcher` for evidence reconciliation, `studio-producer` for capacity/effort review, `studio-designer` for experience translation, and `studio-architect` for feasibility. Production starts only after the studio planning workflow turns the bet into explicit assignments.
+## Execution contract
+
+**Entry:** a reference-intelligence result or an explicit evidence ledger, plus the decision to reject/research/prototype/produce. Never infer missing feedback counts from memory.
+
+**Exit:** `opportunity_ready` only when the recommended thesis traces to evidence, three meaningful differences are explicit, the sensitivity check is recorded, and the prototype has falsifiable reject/iterate/produce criteria. Otherwise return `opportunity_partial` or `opportunity_blocked`.
+
+**Stop conditions:** stop after the decision can be made with stated confidence, the feedback/source budget is reached, or further collection is unlikely to change the top opportunity. Do not optimize a score after its uncertainty dominates the inputs.
+
+**Handoff envelope:** include evidence IDs, analyzed sample/source mix, opportunity IDs, raw scoring factors, recommended thesis, rejected alternatives, prototype hypothesis, success/failure observations, effort class, uncertainty that could reverse the choice, output revisions, and next role. Pass IDs and summaries rather than raw review text.
