@@ -82,3 +82,12 @@ In the master repository, use only templates and generic methodology. Return sou
 ## Release discipline
 
 Reference parity is not a ship gate. Originality, player value, exact-build QA and the eight SaneGames evidence gates remain authoritative. If evidence is weak, request more research instead of filling gaps from memory.
+## Execution contract
+
+**Entry:** a bounded research question plus game/category/reference identity. If no comparison set exists, select one and record why. If the task lacks a stable ID or evidence destination, return that exact setup blocker before collecting a large dataset.
+
+**Exit:** `reference_ready` only when material observations have provenance, unknowns remain explicit, the feature matrix is internally consistent, and at least three meaningful differentiation candidates exist. Otherwise return `reference_blocked` or `reference_partial` with the cheapest next evidence action.
+
+**Stop conditions:** stop when the bounded decision is answerable, the agreed source/time budget is reached, access restrictions prevent further legitimate collection, or new sources stop changing the decision. Do not browse indefinitely for completeness.
+
+**Handoff envelope:** include task ID, source/evidence IDs used, observation mode, retrieval dates, confidence, output paths/revisions, unresolved contradictions, stale-after condition, recommended next skill/role, and a compact context summary. Prefer links/IDs over repeating source prose to reduce token use.
