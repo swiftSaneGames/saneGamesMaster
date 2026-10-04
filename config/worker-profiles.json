@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "profiles": {
+    "mac-1-build": {
+      "purpose": "Research, design and game implementation",
+      "allow_integration": false,
+      "capabilities": [
+        "studio-researcher",
+        "reference-player",
+        "market-analyst",
+        "studio-designer",
+        "economy-designer",
+        "content-designer",
+        "studio-architect",
+        "studio-developer",
+        "gameplay-engineer",
+        "save-systems-engineer",
+        "platform-engineer",
+        "studio-art-ux",
+        "asset-artist",
+        "audio-designer"
+      ]
+    },
+    "mac-2-qa": {
+      "purpose": "Independent QA, device/performance checks and UAT coordination",
+      "allow_integration": false,
+      "capabilities": [
+        "studio-qa",
+        "device-tester",
+        "performance-tester",
+        "uat-coordinator",
+        "security-reviewer",
+        "store-compliance",
+        "dashboard-reviewer"
+      ]
+    },
+    "mac-3-integration": {
+      "purpose": "Serialized source integration and release preparation; no owner approval or store signing",
+      "allow_integration": true,
+      "capabilities": [
+        "integration-writer",
+        "release-preparer",
+        "launch-marketer",
+        "repository-bootstrapper",
+        "studio-producer",
+        "studio-liveops",
+        "player-feedback-analyst"
+      ]
+    }
+  },
+  "rules": [
+    "Use a distinct worker token and dedicated macOS account per machine.",
+    "Only mac-3-integration receives GitHub write credentials.",
+    "No worker receives owner browser cookies, store signing keys, Cloudflare admin credentials or release approval authority.",
+    "All three workers may share private artifacts only through an explicitly configured private synchronized directory.",
+    "A capability declares dispatch eligibility, not proof that a physical device or SDK exists."
+  ]
+}
