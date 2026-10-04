@@ -56,9 +56,16 @@ jobs:
       - name: Check dashboard source contract
         run: node tests/browser_jobs.mjs --static && node tests/dashboard_layout.mjs --static
       - name: Install pinned runtime tools for tests only
-        run: npm install --no-save --package-lock=false wrangler@4.147.0
+        run: npm install --no-save --package-lock=false wrangler@4.147.0 playwright@1.62.1
       - name: Exercise real Worker and SQLite runtime with disposable identities
         run: node tests/runtime/workerd-smoke.mjs
+      - name: Install Chromium for offline dashboard checks
+        run: npx playwright install --with-deps chromium
+      - name: Exercise dashboard interactions and real native handler
+        run: |
+          node tests/browser_jobs.mjs
+          node tests/dashboard_layout.mjs
+          node tests/operator_workflows.mjs
       - name: Check public deployed authentication handshake without signing in
         if: always()
         run: node tests/runtime/live-login-smoke.mjs

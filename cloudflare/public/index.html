@@ -1,21 +1,39 @@
 <!doctype html>
 <html lang="en">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#10161e"><link rel="icon" type="image/png" sizes="60x60" href="/assets/studio-mascot.png"><title>SaneGames — Studio</title><link rel="stylesheet" href="/assets/style.css"><script type="module" src="/assets/app.js"></script></head>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#ffffff">
+  <link rel="icon" type="image/png" sizes="60x60" href="/assets/studio-mascot.png">
+  <title>SaneGames — Studio</title>
+  <link rel="stylesheet" href="/assets/style.css">
+  <script type="module" src="/assets/app.js"></script>
+</head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
 <div class="app-shell">
-<aside class="sidebar" id="sidebar">
-<a class="brand" href="#overview"><span class="brand-mark" aria-hidden="true"><img class="brand-mascot" src="/assets/studio-mascot.png" width="46" height="46" alt=""></span><span>SaneGames<small>STUDIO WORKSPACE</small></span></a>
-<div class="workspace-label"><span class="workspace-dot"></span> swiftSaneGames <span class="private-label">Private</span></div>
-<p class="nav-label">WORKSPACE</p><nav id="nav" aria-label="Main navigation"></nav>
-<div class="sidebar-bottom"><div class="studio-principle"><span class="small-orbit" aria-hidden="true">✧</span><strong>Good games. Good days.</strong><p>Quality is the milestone.<br>Not just another release.</p></div><button class="account-button" id="account-button" data-action="navigate" data-page="settings"><span class="avatar" id="avatar">SG</span><span><strong id="account-name">Studio owner</strong><small>Google account</small></span><span aria-hidden="true">↗</span></button></div>
-</aside>
-<div class="main-shell">
-<header class="topbar"><button id="menu-button" class="icon-button mobile-only" aria-label="Open navigation" aria-expanded="false" data-action="menu">☰</button><div class="breadcrumb">Workspace <span>/</span> <strong id="crumb">Overview</strong></div><form id="global-search-form" class="global-search" role="search"><label class="sr-only" for="global-search">Search game references</label><span aria-hidden="true">⌕</span><input id="global-search" placeholder="Search the research library…" autocomplete="off"><kbd>↵</kbd></form><span class="hosted-badge"><i></i> Private workspace</span><button class="icon-button" data-action="refresh" aria-label="Refresh workspace" title="Refresh workspace">↻</button></header>
-<main id="main" tabindex="-1"><div class="loading"><span class="loader"></span><h1>Opening your studio</h1><p>Loading projects and research securely.</p></div></main>
-<footer class="workspace-footer"><span>SaneGames Studio <span class="footer-dot">·</span> Quality-first game production</span><span id="sync-time">Connecting…</span></footer>
-</div></div>
+  <aside class="sidebar" id="sidebar">
+    <a class="brand" href="#overview"><span class="brand-mark" aria-hidden="true"><img class="brand-mascot" src="/assets/studio-mascot.png" width="34" height="34" alt=""></span><span>SaneGames<small>Studio</small></span></a>
+    <div class="workspace-label">swiftSaneGames <span class="private-label">Private</span></div>
+    <p class="nav-label">WORKSPACE</p>
+    <nav id="nav" aria-label="Main navigation"></nav>
+    <div class="sidebar-bottom">
+      <button class="account-button" id="account-button" data-action="navigate" data-page="settings"><span class="avatar" id="avatar">SG</span><span><strong id="account-name">Studio owner</strong><small>Account & settings</small></span></button>
+    </div>
+  </aside>
+  <div class="main-shell">
+    <header class="topbar">
+      <button id="menu-button" class="icon-button mobile-only" aria-label="Open navigation" aria-expanded="false" data-action="menu"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M3 5h14M3 10h14M3 15h14"/></svg></button>
+      <div class="breadcrumb">Studio <span>/</span> <strong id="crumb">Overview</strong></div>
+      <form id="global-search-form" class="global-search" role="search"><label class="sr-only" for="global-search">Search games</label><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5"/><path d="m13 13 4 4"/></svg><input id="global-search" placeholder="Search games" autocomplete="off"><kbd aria-hidden="true">↵</kbd></form>
+      <span class="hosted-badge">Private workspace</span>
+      <button class="icon-button" data-action="refresh" aria-label="Refresh workspace" title="Refresh workspace"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M16 7A6.5 6.5 0 1 0 16.4 12M16 3v4h-4"/></svg></button>
+    </header>
+    <main id="main" tabindex="-1"><div class="loading"><span class="loader"></span><h1>Loading workspace</h1><p>Retrieving games, assignments and build records.</p></div></main>
+    <footer class="workspace-footer"><span id="sync-time">Connecting…</span></footer>
+  </div>
+</div>
 <dialog id="modal" aria-labelledby="modal-title"><div id="modal-content"></div></dialog>
 <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
-</body></html>
-
+</body>
+</html>

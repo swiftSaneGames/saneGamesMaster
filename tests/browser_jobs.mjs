@@ -36,7 +36,7 @@ function staticChecks() {
   new vm.Script(script); // Validate the whole file, including handlers.
   vm.runInContext(script.slice(0, script.indexOf("document.addEventListener('click'")) + `
     globalThis.fixture = (d, c) => { data = d; catalog = c; refreshTime = '12:00'; };
-    globalThis.helpers = { operationsPage, projectOperations, jobCard, jobActions, retryBlocker, recentWorker, workerSummary, agentsPage, inspectJob, researchPage, discoveryCard, discoveryMatches, renderDiscoveryResults, discoveryIdea, originalProjectForm: projectForm };
+    globalThis.helpers = { operationsPage, workersPage, projectOperations, jobCard, jobActions, retryBlocker, recentWorker, workerSummary, agentsPage, inspectJob, researchPage, discoveryCard, discoveryMatches, renderDiscoveryResults, discoveryIdea, originalProjectForm: projectForm };
     modal = (title, subtitle, content) => { globalThis.dialog = { title, subtitle, content }; };
     projectForm = project => { globalThis.proposedProject = project; };
   `, context);
@@ -44,7 +44,7 @@ function staticChecks() {
   const h = context.helpers;
   assert.match(h.operationsPage(), /1 worker recently seen/);
   assert.match(h.operationsPage(), /data-id="worker_setup"/);
-  assert.match(h.operationsPage(), /Fixture Mac/);
+  assert.match(h.workersPage(), /Fixture Mac/);
   assert.equal(h.recentWorker({ last_seen_at: new Date(Date.now() - 240000).toISOString() }), false);
   assert.equal(h.recentWorker({ last_seen_at: 'invalid' }), false);
   assert.equal(h.retryBlocker(fixtures.jobs[3]), '');
@@ -113,52 +113,52 @@ async function browserChecks() {
     if (url.pathname === '/api/state') return route.fulfill({ json: state });
     if (url.pathname === '/api/catalog') return route.fulfill({ json: catalog });
     if (url.pathname === '/api/docs/worker_setup') return route.fulfill({ json: catalog.documents[0] });
-    const assets = { '/': ['cloudflare/public/index.html', 'text/html'], '/assets/app.js': ['cloudflare/public/assets/app.js', 'text/javascript'], '/assets/style.css': ['cloudflare/public/assets/style.css', 'text/css'] };
-    if (assets[url.pathname]) { const [file, contentType] = assets[url.pathname]; return route.fulfill({ body: read(file), contentType }); }
+    const assets = { '/': ['cloudflare/public/index.html', 'text/html'], '/assets/app.js': ['cloudflare/public/assets/app.js', 'text/javascript'], '/assets/style.css': ['cloudflare/public/assets/style.css', 'text/css'], '/assets/studio-mascot.png': ['cloudflare/public/assets/studio-mascot.png', 'image/png'] };
+    if (assets[url.pathname]) { const [file, contentType] = assets[url.pathname]; return route.fulfill({ body: fs.readFileSync(path.join(root, file)), contentType }); }
     return route.fulfill({ status: 404, json: { error: 'Unknown fixture path' } });
   });
   try {
     const page = await context.newPage(); page.on('pageerror', e => errors.push(e.message));
     await page.goto('https://studio-fixture.invalid/#operations');
-    await page.getByRole('heading', { name: 'Studio operations', exact: true }).waitFor();
+    await page.getByRole('heading', { name: 'Work queue', exact: true }).waitFor();
     await page.getByText('1 worker recently seen', { exact: true }).waitFor();
     assert.equal(await page.locator('[data-action="retry-job"][data-id="blocked-one"]').isDisabled(), true);
-    await page.locator('[data-action="inspect-job"][data-id="passed-one"]').click();
+    await page.locator('.button[data-action="inspect-job"][data-id="passed-one"]').click();
     await page.getByText('docs/qa/report.md', { exact: true }).waitFor();
     await page.keyboard.press('Escape');
     assert.equal(await page.locator('#modal').isVisible(), false);
-    await page.getByRole('button', { name: 'Assign a role', exact: true }).click();
+    await page.getByRole('button', { name: 'Assign work', exact: true }).click();
     await page.getByLabel('Assignment title').fill('Verify fixture save recovery');
     await page.getByLabel('Scope, acceptance criteria, and evidence').fill('Test interruption and save recovery with reproducible fixture evidence.');
     await page.getByRole('button', { name: 'Queue assignment', exact: true }).click();
-    await page.getByRole('heading', { name: 'Verify fixture save recovery', exact: true }).waitFor();
+    await page.getByRole('button', { name: 'Verify fixture save recovery', exact: true }).waitFor();
     await page.locator('[data-action="retry-job"][data-id="failed-one"]').click();
     await page.locator('[data-action="cancel-job"][data-id="queued-one"]').click();
     await page.getByRole('button', { name: 'Cancel job', exact: true }).click();
     await page.waitForFunction(() => !document.querySelector('#modal').open);
     await page.evaluate(() => { location.hash = 'project/project-one'; });
     await page.getByRole('button', { name: 'Start production pipeline', exact: true }).click();
-    await page.getByRole('heading', { name: 'Studio operations', exact: true }).waitFor();
+    await page.getByRole('heading', { name: 'Work queue', exact: true }).waitFor();
     assert.ok(calls.some(c => c.path.endsWith('/plan')));
     assert.ok(calls.some(c => c.path.endsWith('/cancel')));
     assert.ok(calls.some(c => c.path.endsWith('/retry')));
     await page.setViewportSize({ width: 390, height: 844 });
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, 'Operations overflows mobile viewport');
-    await page.locator('[data-action="inspect-job"][data-id="passed-one"]').click();
+    await page.locator('.button[data-action="inspect-job"][data-id="passed-one"]').click();
     assert.equal(await page.evaluate(() => document.querySelector('#modal').scrollWidth <= document.querySelector('#modal').clientWidth), true, 'Job dialog overflows');
     await page.keyboard.press('Escape');
     state.workers = [];
-    await page.getByRole('button', { name: 'Refresh status', exact: true }).click();
+    await page.locator('[data-action="refresh-operations"]').click();
     await page.getByText('No workers registered', { exact: true }).waitFor();
     delete state.jobs; delete state.workers; delete state.job_roles;
-    await page.getByRole('button', { name: 'Refresh status', exact: true }).click();
+    await page.locator('[data-action="refresh-operations"]').click();
     await page.getByText('Queue not available', { exact: true }).waitFor();
     await page.evaluate(() => { location.hash = 'reviews'; });
-    await page.getByRole('heading', { name: 'Release reviews', exact: true }).waitFor();
+    await page.getByRole('heading', { name: 'Builds & reviews', exact: true }).waitFor();
     assert.equal(calls.filter(c => /decision|publication/.test(c.path)).length, 0);
     assert.deepEqual(errors, []);
     const output = process.env.BROWSER_OUTPUT;
-    if (output) { fs.mkdirSync(output, { recursive: true }); await page.evaluate(() => { location.hash = 'operations'; }); await page.getByRole('heading', { name: 'Studio operations', exact: true }).waitFor(); await page.screenshot({ path: path.join(output, 'operations-mobile.png'), fullPage: true }); }
+    if (output) { fs.mkdirSync(output, { recursive: true }); await page.evaluate(() => { location.hash = 'operations'; }); await page.getByRole('heading', { name: 'Work queue', exact: true }).waitFor(); await page.screenshot({ path: path.join(output, 'operations-mobile.png'), fullPage: true }); }
     console.log('Offline Chromium fixture checks passed: assignment/plan/retry/cancel CSRF requests, evidence dialog/Escape, mobile width, empty/rollout states, release route unchanged. Not a live backend, worker, OAuth, or production check.');
   } finally { await context.close(); await browser.close(); }
 }

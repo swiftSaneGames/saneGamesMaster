@@ -31,7 +31,7 @@ test('dashboard serves every complete role contract and the game-name kickoff ha
       assert.ok(role.content.split(/\s+/).length > 2000, role.id + ' must include its full shared and role contracts');
       assert.match(role.content, /checkpoint/i);
     }
-    for (const id of ['prom', 'start_a_game', 'worker_setup', 'claude_tooling', 'implementation_roadmap', 'agent-directory']) {
+    for (const id of ['prom', 'start_a_game', 'worker_setup', 'claude_dashboard_workflow', 'dashboard_design', 'claude_tooling', 'implementation_roadmap', 'agent-directory']) {
       assert.ok(catalog.documents.some(document => document.id === id), id);
       assert.equal((await h.as(login, '/api/docs/' + id)).status, 200);
     }

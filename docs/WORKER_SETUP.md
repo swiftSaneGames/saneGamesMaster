@@ -80,6 +80,10 @@ This allows QA, repair development, marketing, and compliance to inspect the act
 
 QA preserves the candidate unchanged and must return a substantive `report` through the text channel described below; the worker publishes it as `report.md`. Recovery notes use the optional checkpoint field. A changed source candidate invalidates the earlier evidence. Release preparation must rerun required checks against the final integrated SHA and exact Android/iOS artifacts.
 
+## Progress in the dashboard
+
+The runner reports lifecycle steps and, for roles with existing write permission, relays validated `.studio/progress.json` updates. Model credentials remain outside the subprocess. Current backend/runner versions are required; an unavailable progress endpoint stops before launching Claude. See [how Claude reads work and reports progress](CLAUDE_DASHBOARD_WORKFLOW.md) for the owner workflow, progress schema, limits and retention. Read-only roles keep their existing permissions and return detailed findings through the final result channel.
+
 ## Structured result channel
 
 The CLI invocation uses verified `-p`, `--agent`, `--output-format json`, `--max-turns`, and the configured model/optional effort. No permission-bypass flag is used. The assignment arrives through stdin.

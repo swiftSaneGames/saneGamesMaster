@@ -517,5 +517,166 @@ class WorkerTests(unittest.TestCase):
             api.assert_not_called()
 
 
+    def progress_fixture(self):
+        workspace = self.root / 'progress-workspace'
+        (workspace / '.studio').mkdir(parents=True)
+        api = mock.Mock(token='w' * 48)
+        reporter = worker.ProgressReporter(api, {'job_id': 'j1', 'lease_token': 's' * 72, 'fence': 3}, workspace)
+        self.addCleanup(reporter.close)
+        value = {'update_id': 'one', 'phase': 'executing', 'summary': 'Original loop drafted.',
+                 'completed': ['Core loop documented.'], 'next_step': 'Implement the first interaction.', 'blocker': ''}
+        return workspace / '.studio/progress.json', api, reporter, value
+
+    def test_progress_polls_bounded_file_and_suppresses_unchanged_bytes(self):
+        path, api, reporter, value = self.progress_fixture()
+        reporter.poll(0)
+        self.assertFalse(api.post.called)
+        path.write_text(json.dumps(value))
+        reporter.poll(9)
+        self.assertFalse(api.post.called)
+        reporter.poll(10)
+        self.assertEqual(api.post.call_count, 1)
+        endpoint, payload = api.post.call_args.args
+        self.assertEqual(endpoint, 'progress')
+        self.assertEqual(payload['progress']['update_id'], 'claude:one')
+        self.assertEqual(payload['fence'], 3)
+        reporter.poll(20)
+        self.assertEqual(api.post.call_count, 1)
+        value.update(update_id='two', summary='Interaction implemented.')
+        path.write_text(json.dumps(value))
+        reporter.poll(30)
+        self.assertEqual(api.post.call_count, 2)
+
+    def test_progress_rejects_symlinks_hardlinks_special_files_and_oversize(self):
+        path, api, reporter, value = self.progress_fixture()
+        outside = self.root / 'outside-progress'
+        outside.write_text(json.dumps(value))
+        path.symlink_to(outside)
+        reporter.poll(0)
+        path.unlink()
+        os.link(outside, path)
+        reporter.poll(10)
+        path.unlink()
+        os.mkfifo(path)
+        reporter.poll(20)
+        path.unlink()
+        path.write_bytes(b'x' * (worker.MAX_PROGRESS_BYTES + 1))
+        reporter.poll(30)
+        self.assertFalse(api.post.called)
+
+    def test_progress_rejects_replaced_parent_directory(self):
+        path, api, reporter, value = self.progress_fixture()
+        path.parent.rename(path.parent.with_name('old-studio'))
+        path.parent.symlink_to(self.root, target_is_directory=True)
+        with self.assertRaisesRegex(worker.WorkerError, 'directory was replaced'):
+            reporter.poll(0)
+        self.assertFalse(api.post.called)
+
+    def test_progress_incomplete_json_and_unicode_limits_do_not_publish(self):
+        path, api, reporter, value = self.progress_fixture()
+        for index, raw in enumerate(['{', '[' * 1500 + ']' * 1500, '[]', json.dumps({**value, 'summary': '😀' * 601}), json.dumps({**value, 'completed': ['😀' * 121]}), json.dumps({**value, 'reported_at': 'fake'})]):
+            path.write_text(raw)
+            reporter.poll(index * 10)
+        self.assertFalse(api.post.called)
+        path.write_text(json.dumps({**value, 'summary': '😀' * 600}))
+        reporter.poll(60)
+        self.assertEqual(api.post.call_count, 1)
+
+    def test_progress_rejects_concurrent_rewrites(self):
+        path, api, reporter, value = self.progress_fixture()
+        path.write_text(json.dumps(value))
+        original_read = os.read
+        def raced_read(fd, count):
+            raw = original_read(fd, count)
+            path.write_text(json.dumps({**value, 'summary': 'Changed concurrently.'}))
+            return raw
+        with mock.patch.object(worker.os, 'read', side_effect=raced_read):
+            reporter.poll(0)
+        self.assertFalse(api.post.called)
+        reporter.poll(10)
+        self.assertEqual(api.post.call_count, 1)
+
+    def test_progress_credentials_are_rejected_before_network(self):
+        path, api, reporter, value = self.progress_fixture()
+        api.token = 'w' * 24 + chr(34) + 'w' * 24
+        for index, secret in enumerate([api.token, reporter.lease_body['lease_token']]):
+            path.write_text(json.dumps({**value, 'summary': secret}))
+            with self.assertRaisesRegex(worker.WorkerError, 'credentials'):
+                reporter.poll(index * 10)
+        self.assertFalse(api.post.called)
+
+    def test_progress_stale_lease_stops_running_child_and_is_not_marked_delivered(self):
+        path, api, reporter, value = self.progress_fixture()
+        path.write_text(json.dumps(value))
+        api.post.side_effect = worker.LeaseLost('stale')
+        process = mock.Mock()
+        process.poll.return_value = None
+        with mock.patch.object(worker, 'terminate_process') as terminate:
+            with self.assertRaises(worker.LeaseLost):
+                worker.supervise(process, api, reporter.lease_body, self.config(), clock=iter([0, 1]).__next__, pause=lambda _: None, progress=reporter)
+            terminate.assert_called_once_with(process)
+        self.assertIsNone(reporter.last_digest)
+
+    def test_missing_progress_backend_blocks_before_claude_or_workspace_preparation(self):
+        api = mock.Mock(token='w' * 48)
+        api.post.side_effect = lambda endpoint, body: (_ for _ in ()).throw(worker.WorkerError('Dashboard backend lacks progress support.')) if endpoint == 'progress' else {}
+        with mock.patch.object(worker, 'prepare_workspace') as prepare, mock.patch.object(worker.subprocess, 'Popen') as process:
+            with self.assertRaisesRegex(worker.WorkerError, 'lacks progress support'):
+                worker.execute_job(api, {'id': 'j1'}, {'token': 's' * 72, 'fence': 1}, self.config())
+            prepare.assert_not_called()
+            process.assert_not_called()
+        self.assertEqual(api.post.call_args_list[0].args[0], 'renew')
+
+    def test_progress_path_only_uses_already_permitted_write_scope(self):
+        checkout = self.repository()
+        config = self.config()
+        config['repositories'] = {'https://github.com/example/game': checkout}
+        for index, (role, rules, permitted) in enumerate([('studio-developer', ['Read', 'Write(./**)'], True), ('studio-developer', ['Read', 'Write(./docs/**)'], False), ('studio-qa', ['Read'], False)]):
+            config['allowed_tools'][role] = rules
+            job = {'id': 'progress' + str(index), 'role': role, 'instructions': 'Review the original task.', 'repository_url': 'https://github.com/example/game'}
+            _, workspace, _, assignment = worker.prepare_workspace(job, {'token': 's' * 72, 'fence': 1}, config)
+            self.assertEqual(assignment['progress_path'], str(workspace / '.studio/progress.json') if permitted else None)
+            prompt = worker.make_prompt(job, assignment)
+            self.assertNotIn('s' * 72, prompt)
+            self.assertIn('At each meaningful milestone' if permitted else 'no progress-file Write permission', prompt)
+            self.assertEqual(config['allowed_tools'][role], rules)
+
+    def test_progress_api_distinguishes_conflict_from_stale_and_missing_version(self):
+        import io
+        import urllib.error
+        api = worker.API('https://studio.example', 's' * 48)
+        for code, content, expected in [(404, {}, worker.WorkerError), (409, {'code': 'progress_conflict'}, worker.WorkerError), (409, {'code': 'stale_lease'}, worker.LeaseLost)]:
+            api.opener.open = mock.Mock(side_effect=urllib.error.HTTPError('https://studio.example', code, 'fixture', {}, io.BytesIO(json.dumps(content).encode())))
+            with self.assertRaises(expected) as caught:
+                api.post('progress', {})
+            if content.get('code') == 'progress_conflict':
+                self.assertNotIsInstance(caught.exception, worker.LeaseLost)
+
+
+    def test_execution_publishes_actual_milestones_and_keeps_tokens_out_of_child(self):
+        checkout = self.repository()
+        config = self.config()
+        config['repositories'] = {'https://github.com/example/game': checkout}
+        job = {'id': 'life1', 'role': 'studio-developer', 'instructions': 'Implement the assigned original loop.', 'repository_url': 'https://github.com/example/game'}
+        lease = {'token': 's' * 72, 'fence': 1}
+        prepared = worker.prepare_workspace(job, lease, config)
+        run_root, workspace, result_path, assignment = prepared
+        api = mock.Mock(token='w' * 48)
+        def launch(*args, **kwargs):
+            kwargs['stdout'].write(json.dumps({'is_error': False, 'result': json.dumps(result())}))
+            kwargs['stdout'].flush()
+            return mock.Mock(poll=mock.Mock(return_value=0), returncode=0)
+        with mock.patch.object(worker, 'prepare_workspace', return_value=prepared), \
+             mock.patch.object(worker, 'package_result', side_effect=lambda value, *args: value), \
+             mock.patch.object(worker.subprocess, 'Popen', side_effect=launch) as child:
+            self.assertEqual(worker.execute_job(api, job, lease, config), 'pass')
+        calls = api.post.call_args_list
+        self.assertEqual([call.args[1]['progress']['phase'] for call in calls if call.args[0] == 'progress'], ['preparing', 'executing', 'validating', 'reporting'])
+        self.assertEqual(calls[-1].args[0], 'complete')
+        self.assertNotIn(lease['token'], (run_root / 'prompt.txt').read_text())
+        self.assertNotIn(api.token, (run_root / 'assignment.json').read_text())
+        self.assertNotIn('STUDIO_WORKER_TOKEN', child.call_args.kwargs['env'])
+
+
 if __name__ == '__main__':
     unittest.main()

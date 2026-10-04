@@ -17,6 +17,19 @@ const TERMINAL_BAD = new Set(['failed', 'cancelled', 'blocked']);
 const ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,119}$/;
 const nowSeconds = () => Math.floor(Date.now() / 1000);
 const iso = value => new Date(value * 1000).toISOString();
+export const PROGRESS_PHASES = Object.freeze(['preparing', 'executing', 'validating', 'reporting', 'blocked']);
+function progressInput(input) {
+  const keys = ['update_id', 'phase', 'summary', 'completed', 'next_step', 'blocker'];
+  requireThat(input && typeof input === 'object' && !Array.isArray(input) && Object.keys(input).every(k => keys.includes(k)), 'Invalid progress fields');
+  requireThat(typeof input.update_id === 'string' && ID.test(input.update_id), 'Invalid progress update ID');
+  requireThat(PROGRESS_PHASES.includes(input.phase), 'Invalid progress phase');
+  requireThat(Array.isArray(input.completed) && input.completed.length <= 8, 'Progress needs at most eight completed items');
+  const progress = { update_id: input.update_id, phase: input.phase, summary: text(input.summary, 'progress summary', 1200, 1),
+    completed: input.completed.map(item => text(item, 'completed item', 240, 1)), next_step: text(input.next_step, 'next step', 500), blocker: text(input.blocker, 'blocker', 500) };
+  requireThat(new TextEncoder().encode(JSON.stringify(progress)).length <= 6000, 'Progress is too large', 413);
+  return progress;
+}
+const progressContent = ({ update_id, reported_at, worker_id, fence, source, ...content }) => canonical(content);
 
 /** Credentials are runtime secrets, never worker-supplied identity or persisted metadata. */
 export function workerCredentials(env) {
@@ -94,6 +107,8 @@ export class JobQueue {
       CREATE TABLE IF NOT EXISTS workers (id TEXT PRIMARY KEY, seen INTEGER NOT NULL, data TEXT NOT NULL);
       CREATE TABLE IF NOT EXISTS repository_leases (repository_key TEXT PRIMARY KEY, job_id TEXT UNIQUE NOT NULL, worker_id TEXT NOT NULL, token TEXT NOT NULL, fence INTEGER NOT NULL, expires INTEGER NOT NULL);
       CREATE TABLE IF NOT EXISTS repository_fences (repository_key TEXT PRIMARY KEY, fence INTEGER NOT NULL);
+      CREATE TABLE IF NOT EXISTS job_progress (sequence INTEGER PRIMARY KEY AUTOINCREMENT, job_id TEXT NOT NULL, fence INTEGER NOT NULL, update_id TEXT NOT NULL, data TEXT NOT NULL, UNIQUE(job_id,fence,update_id));
+      CREATE INDEX IF NOT EXISTS job_progress_job ON job_progress(job_id,sequence);
       CREATE INDEX IF NOT EXISTS jobs_status ON jobs(status);
       CREATE INDEX IF NOT EXISTS jobs_project ON jobs(project_id);`);
   }
@@ -101,12 +116,12 @@ export class JobQueue {
   row(query, ...args) { return this.store.row(query, ...args); }
   get(id) { const r = this.row('SELECT data FROM jobs WHERE id=?', id); requireThat(r, 'Job not found', 404); return JSON.parse(r.data); }
   all() { return this.rows('SELECT data FROM jobs ORDER BY rowid').map(r => JSON.parse(r.data)); }
-  public(job) { const { input_fingerprint, ...safe } = job; return safe; }
+  public(job) { const { input_fingerprint, progress_recent, ...safe } = job; return safe; }
   save(job) { job.updated_at = iso(nowSeconds()); this.sql.exec('UPDATE jobs SET status=?,data=? WHERE id=?', job.status, JSON.stringify(job), job.id); }
   log(actor, event, job, details = {}) { this.store.log(actor, event, job, details); }
   safe(value, extra = []) {
     const serialized = JSON.stringify(value);
-    for (const secret of [...workerCredentials(this.store.env).map(([, token]) => token), ...[this.store.env.INTAKE_TOKEN, this.store.env.GOOGLE_CLIENT_SECRET].filter(s => typeof s === 'string' && s.length >= 16), ...extra]) requireThat(!secret || !serialized.includes(secret), 'Do not include credentials or lease secrets in job content');
+    for (const secret of [...workerCredentials(this.store.env).map(([, token]) => token), ...[this.store.env.INTAKE_TOKEN, this.store.env.GOOGLE_CLIENT_SECRET].filter(s => typeof s === 'string' && s.length >= 16), ...extra]) requireThat(!secret || (!serialized.includes(secret) && !serialized.includes(JSON.stringify(secret).slice(1, -1))), 'Do not include credentials or lease secrets in job content');
     return value;
   }
   recover() {
@@ -141,7 +156,12 @@ export class JobQueue {
   }
   state() {
     this.recover(); const now = nowSeconds();
-    return { jobs: this.all().map(j => this.public(j)), workers: this.rows('SELECT * FROM workers ORDER BY id').map(r => ({ ...JSON.parse(r.data), online: r.seen > now - LEASE_SECONDS, last_seen_at: iso(r.seen) })), job_roles: JOB_ROLES, job_queue: { durable: true, lease_seconds: LEASE_SECONDS, execution: 'authenticated_external_workers', release_approval: 'owner_only' } };
+    const histories = new Map();
+    for (const row of this.rows('SELECT job_id,data FROM job_progress ORDER BY sequence')) {
+      if (!histories.has(row.job_id)) histories.set(row.job_id, []);
+      histories.get(row.job_id).push(JSON.parse(row.data));
+    }
+    return { jobs: this.all().map(j => ({ ...this.public(j), progress_history: histories.get(j.id) || [] })), workers: this.rows('SELECT * FROM workers ORDER BY id').map(r => ({ ...JSON.parse(r.data), online: r.seen > now - LEASE_SECONDS, last_seen_at: iso(r.seen) })), job_roles: JOB_ROLES, job_queue: { durable: true, lease_seconds: LEASE_SECONDS, execution: 'authenticated_external_workers', release_approval: 'owner_only', progress_updates: true, progress_history_per_job: 40, progress_history_global: 400 } };
   }
   enqueue(p, actor) {
     this.recover();
@@ -230,7 +250,7 @@ export class JobQueue {
       this.sql.exec('INSERT INTO repository_fences VALUES(?,?) ON CONFLICT(repository_key) DO UPDATE SET fence=excluded.fence', repo.key, fence);
       const token = crypto.randomUUID() + crypto.randomUUID(), expires = nowSeconds() + LEASE_SECONDS;
       this.sql.exec('INSERT INTO repository_leases VALUES(?,?,?,?,?,?)', repo.key, job.id, id, token, fence, expires);
-      job.status = 'running'; job.attempts++; job.worker_id = id; job.fence = fence; job.started_at = iso(nowSeconds()); job.lease_expires_at = iso(expires); this.save(job);
+      job.status = 'running'; job.attempts++; job.worker_id = id; job.fence = fence; job.progress = null; job.started_at = iso(nowSeconds()); job.lease_expires_at = iso(expires); this.save(job);
       this.sql.exec('UPDATE workers SET seen=? WHERE id=?', nowSeconds(), id);
       this.log('worker:' + id, 'job_claimed', job.id, { attempts: job.attempts, fence });
       return { job: { ...this.public(job), dependency_results: [...new Set([...job.dependencies, ...(job.context_job_ids || []), ...(job.candidate_dependency_id ? [job.candidate_dependency_id] : [])])].map(d => ({ id: d, role: byId.get(d).role, status: byId.get(d).status, fence: byId.get(d).fence, repository_url: byId.get(d).repository_url, result: byId.get(d).result })) }, lease: { token, fence, expires_at: iso(expires) } };
@@ -248,6 +268,28 @@ export class JobQueue {
     this.sql.exec('UPDATE repository_leases SET expires=? WHERE job_id=? AND fence=?', expires, job.id, lease.fence);
     job.lease_expires_at = iso(expires); this.save(job); this.sql.exec('UPDATE workers SET seen=? WHERE id=?', nowSeconds(), id);
     return { lease: { token: lease.token, fence: lease.fence, expires_at: iso(expires) } };
+  }
+  progress(id, p) {
+    const { job, lease } = this.lease(id, p);
+    const input = this.safe(progressInput(p.progress), this.rows('SELECT token FROM repository_leases').map(r => r.token));
+    const content = progressContent(input);
+    const saved = this.row('SELECT data FROM job_progress WHERE job_id=? AND fence=? AND update_id=?', job.id, lease.fence, input.update_id);
+    const previous = saved ? JSON.parse(saved.data) : (job.progress?.fence === lease.fence && job.progress.update_id === input.update_id ? job.progress : null);
+    if (previous) {
+      requireThat(progressContent(previous) === content, 'Progress update ID belongs to different content', 409, 'progress_conflict');
+      return { progress: previous, idempotent: true };
+    }
+    if (job.progress?.fence === lease.fence && progressContent(job.progress) === content) return { progress: job.progress, idempotent: true };
+    const now = nowSeconds();
+    const recent = (job.progress_recent || []).filter(stamp => stamp > now - 60);
+    requireThat(recent.length < 12, 'Progress rate limit reached', 429, 'progress_rate_limited');
+    const progress = { ...input, reported_at: iso(now), worker_id: id, fence: lease.fence, source: 'worker_reported_not_independently_verified' };
+    job.progress = progress; job.progress_recent = [...recent, now]; this.save(job);
+    this.sql.exec('INSERT INTO job_progress(job_id,fence,update_id,data) VALUES(?,?,?,?)', job.id, lease.fence, input.update_id, JSON.stringify(progress));
+    this.sql.exec('DELETE FROM job_progress WHERE job_id=? AND sequence NOT IN (SELECT sequence FROM job_progress WHERE job_id=? ORDER BY sequence DESC LIMIT 40)', job.id, job.id);
+    this.sql.exec('DELETE FROM job_progress WHERE sequence NOT IN (SELECT sequence FROM job_progress ORDER BY sequence DESC LIMIT 400)');
+    // Progress is advisory: it cannot renew a lease, complete work, pass checks or approve a release.
+    return { progress, idempotent: false };
   }
   repair(job) {
     if (job.pipeline_step !== 'qa' || job.result?.outcome !== 'fail' || job.repair_cycle >= 2) return [];

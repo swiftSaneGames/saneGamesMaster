@@ -273,3 +273,88 @@ test('a named kickoff preserves its bounded original brief through queued and cl
   assert.equal(active.job.project_id, p.id); assert.ok(active.job.instructions.includes(intent.title)); assert.ok(active.job.instructions.includes(intent.summary));
   assert.equal(active.job.project_context.title, intent.title); h.close();
 });
+
+function progress(overrides = {}) {
+  return { update_id: 'milestone-1', phase: 'executing', summary: 'Reviewed the game brief.', completed: ['Original scope recorded.'], next_step: 'Implement the scoped loop.', blocker: '', ...overrides };
+}
+async function activeJob() {
+  const context = await setup(); await enqueue(context.h, context.owner, context.p); await heartbeat(context.h);
+  return { ...context, active: await claim(context.h) };
+}
+test('leased progress persists server identity without changing outcome, approval or lease', async () => {
+  const { h, owner, active } = await activeJob();
+  const response = await body(await machine(h, 'progress', { ...lease(active), progress: progress() }));
+  assert.equal(response.idempotent, false); assert.equal(response.progress.worker_id, 'mac-one'); assert.equal(response.progress.fence, active.lease.fence);
+  assert.ok(Math.abs(Date.parse(response.progress.reported_at) - Date.now()) < 2000);
+  assert.equal(response.progress.source, 'worker_reported_not_independently_verified');
+  const stateValue = await state(h, owner), job = stateValue.jobs[0];
+  assert.equal(job.status, 'running'); assert.equal(job.result, null); assert.equal(job.lease_expires_at, active.job.lease_expires_at); assert.equal(job.progress_history.length, 1);
+  assert.equal(stateValue.releases.length, 0); assert.equal(stateValue.job_queue.progress_updates, true); assert.equal(stateValue.job_queue.progress_history_global, 400);
+  assert.ok(!JSON.stringify(stateValue).includes('progress_recent')); h.close();
+});
+test('progress rejects public, owner, intake and other-worker callers', async () => {
+  const { h, owner, active } = await activeJob(), payload = { ...lease(active), progress: progress() };
+  assert.equal((await h.request('/api/worker/progress', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })).status, 401);
+  assert.equal((await h.as(owner, '/api/worker/progress', 'POST', payload)).status, 401);
+  assert.equal((await h.request('/api/worker/progress', { method: 'POST', headers: { Authorization: 'Bearer ' + h.env.INTAKE_TOKEN, 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })).status, 401);
+  assert.equal((await machine(h, 'progress', payload, 'mac-two')).status, 409);
+  assert.equal((await machine(h, 'progress', { ...payload, fence: payload.fence + 1 })).status, 409);
+  assert.equal((await machine(h, 'progress', { ...payload, lease_token: 'wrong' })).status, 409);
+  assert.equal((await state(h, owner)).jobs[0].progress, null); h.close();
+});
+test('expired and cancelled leases cannot publish even an otherwise idempotent update', async () => {
+  const { h, owner, active } = await activeJob(), payload = { ...lease(active), progress: progress() };
+  await body(await machine(h, 'progress', payload));
+  h.store.sql.exec('UPDATE repository_leases SET expires=1 WHERE job_id=?', active.job.id);
+  assert.equal((await machine(h, 'progress', payload)).status, 409);
+  const next = await claim(h); assert.ok(next.lease.fence > active.lease.fence); assert.equal(next.job.progress, null);
+  await body(await h.as(owner, '/api/jobs/' + next.job.id + '/cancel', 'POST', {}));
+  assert.equal((await machine(h, 'progress', { ...lease(next), progress: progress() })).status, 409); h.close();
+});
+test('progress validates every bounded field, rejects invented authority and filters credentials', async () => {
+  const { h, active } = await activeJob(); h.env.GOOGLE_CLIENT_SECRET = 'escaped-credential-"' + 'q'.repeat(40);
+  for (const patch of [{ update_id: '../outside' }, { phase: 'succeeded' }, { completed: Array(9).fill('x') }, { completed: ['x'.repeat(241)] }, { summary: '' }, { summary: 'x'.repeat(1201) }, { next_step: 'x'.repeat(501) }, { blocker: null }, { reported_at: '2000-01-01' }, { worker_id: 'owner' }, { approved: true }, { summary: TOKENS['mac-one'] }, { summary: active.lease.token }, { summary: h.env.INTAKE_TOKEN }, { summary: h.env.GOOGLE_CLIENT_SECRET }, { summary: '😀'.repeat(601) }]) {
+    const response = await machine(h, 'progress', { ...lease(active), progress: progress(patch) }); assert.equal(response.status, 422, JSON.stringify(patch));
+  }
+  assert.equal((await machine(h, 'progress', { ...lease(active), progress: progress({ summary: '界'.repeat(1200), completed: Array(8).fill('界'.repeat(240)) }) })).status, 413);
+  await body(await machine(h, 'progress', { ...lease(active), progress: progress({ phase: 'blocked', blocker: 'A physical iOS device is unavailable.' }) }));
+  assert.equal(h.store.jobs.get(active.job.id).status, 'running'); h.close();
+});
+test('progress replay is idempotent, unchanged content stays quiet and ID conflicts fail', async () => {
+  const { h, owner, active } = await activeJob(), payload = { ...lease(active), progress: progress() };
+  const first = await body(await machine(h, 'progress', payload));
+  for (const change of [{}, { update_id: 'milestone-2' }]) {
+    const again = await body(await machine(h, 'progress', { ...payload, progress: progress(change) })); assert.equal(again.idempotent, true); assert.deepEqual(again.progress, first.progress);
+  }
+  const conflict = await machine(h, 'progress', { ...payload, progress: progress({ summary: 'Changed content.' }) }); assert.equal(conflict.status, 409); assert.equal((await conflict.json()).code, 'progress_conflict');
+  assert.equal((await state(h, owner)).jobs[0].progress_history.length, 1); h.close();
+});
+test('progress rate is bounded independently of event retention', async () => {
+  const { h, active } = await activeJob();
+  for (let i = 0; i < 12; i++) await body(await machine(h, 'progress', { ...lease(active), progress: progress({ update_id: 'update-' + i, summary: 'Completed step ' + i }) }));
+  h.store.sql.exec('DELETE FROM job_progress');
+  const response = await machine(h, 'progress', { ...lease(active), progress: progress({ update_id: 'update-13', summary: 'One more step' }) });
+  assert.equal(response.status, 429); assert.equal((await response.json()).code, 'progress_rate_limited'); h.close();
+});
+test('progress history is bounded per job and globally without bloating queue scans', async t => {
+  const { h, owner, p } = await setup(); await heartbeat(h); let now = Date.now(); t.mock.method(Date, 'now', () => now);
+  for (let jobIndex = 0; jobIndex < 11; jobIndex++) {
+    await enqueue(h, owner, p); const active = await claim(h); h.store.sql.exec('UPDATE repository_leases SET expires=? WHERE job_id=?', Math.floor(now / 1000) + 1000, active.job.id);
+    for (let i = 0; i < 41; i++) {
+      now += 6000;
+      h.store.jobs.progress('mac-one', { ...lease(active), progress: progress({ update_id: 'step-' + i, summary: 'Observed step ' + i }) });
+    }
+    assert.equal(h.store.row('SELECT COUNT(*) AS n FROM job_progress WHERE job_id=?', active.job.id).n, 40);
+    assert.ok(!Object.hasOwn(h.store.jobs.get(active.job.id), 'progress_history'));
+    await complete(h, active);
+  }
+  assert.equal(h.store.row('SELECT COUNT(*) AS n FROM job_progress').n, 400);
+  const value = await state(h, owner); assert.equal(value.jobs.flatMap(j => j.progress_history).length, 400); assert.ok(value.jobs.every(j => j.progress_history.length <= 40)); h.close();
+});
+test('progress and idempotency survive Durable Object reconstruction', async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'sg-progress-')), file = path.join(dir, 'studio.db');
+  const { h, owner, p } = await setup({}, file); await enqueue(h, owner, p); await heartbeat(h); const active = await claim(h);
+  const payload = { ...lease(active), progress: progress() }; await body(await machine(h, 'progress', payload)); h.close();
+  const again = harness(config, file); assert.equal((await body(await machine(again, 'progress', payload))).idempotent, true);
+  assert.equal((await state(again, owner)).jobs[0].progress_history.length, 1); again.close(); fs.rmSync(dir, { recursive: true });
+});

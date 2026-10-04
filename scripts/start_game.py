@@ -18,7 +18,7 @@ import urllib.request
 
 import bootstrap_game as bootstrap
 
-CATEGORIES = ('Business simulation', 'Idle management', 'Decision simulation', 'Puzzle', 'Arcade', 'Steering')
+CATEGORIES = ('Business simulation', 'Idle management', 'Decision simulation', 'Puzzle', 'Arcade', 'Steering', 'Adventure', 'Casual', 'Board & Card', 'Educational', 'Music & Rhythm', 'Simulation', 'Strategy', 'Hyper-casual')
 PROJECT_ID = re.compile(r'p-[a-f0-9-]{1,60}\Z')
 JOB_ID = re.compile(r'j-[a-f0-9-]{1,60}\Z')
 MAX_RESPONSE = 2 * 1024 * 1024

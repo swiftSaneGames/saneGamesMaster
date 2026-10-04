@@ -79,7 +79,7 @@ export class StudioStore {
         }
         if (worker_id) {
           requireThat(workerCredentials(this.env).some(([id]) => id === worker_id), 'Worker access has been removed', 401);
-          const operations = { worker_heartbeat: 'heartbeat', worker_claim: 'claim', worker_renew: 'renew', worker_complete: 'complete', worker_fail: 'fail', worker_candidate: 'candidate' };
+          const operations = { worker_heartbeat: 'heartbeat', worker_claim: 'claim', worker_renew: 'renew', worker_progress: 'progress', worker_complete: 'complete', worker_fail: 'fail', worker_candidate: 'candidate' };
           requireThat(Object.hasOwn(operations, op), 'Worker cannot perform this operation', 403);
           return this.jobs[operations[op]](worker_id, payload);
         }

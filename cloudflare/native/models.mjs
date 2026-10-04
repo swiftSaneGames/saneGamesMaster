@@ -2,7 +2,7 @@ import { requireThat, text, httpsURL } from './security.mjs';
 export const STAGES = ['research', 'design', 'building', 'qa', 'review', 'live'];
 export const ROLES = ['researcher', 'designer', 'architect', 'producer', 'developer', 'art-ux', 'qa', 'release', 'liveops'];
 export const GATES = ['automated_tests', 'android_device', 'ios_device', 'save_migration', 'performance', 'privacy_ads', 'licenses', 'launch_materials'];
-export const CATEGORIES = ['Business simulation', 'Idle management', 'Decision simulation', 'Puzzle', 'Arcade', 'Steering'];
+export const CATEGORIES = ['Business simulation', 'Idle management', 'Decision simulation', 'Puzzle', 'Arcade', 'Steering', 'Adventure', 'Casual', 'Board & Card', 'Educational', 'Music & Rhythm', 'Simulation', 'Strategy', 'Hyper-casual'];
 export const TASKS = [['researcher', 'Study references and record evidence'], ['designer', 'Validate an original core loop'], ['architect', 'Define architecture and acceptance criteria'], ['art-ux', 'Define visual direction and accessible controls'], ['developer', 'Implement and test the playable game'], ['qa', 'Complete independent QA on both platforms'], ['release', 'Prepare the exact release-review pack'], ['liveops', 'Prepare the 30-day maintenance plan']];
 export function projectInput(input) {
   const title = text(input.title, 'title', 100, 3), summary = text(input.summary || '', 'summary', 4000);
@@ -34,3 +34,4 @@ export function manifestInput(input, env) {
   return { project_id: text(input.project_id, 'project id', 50, 1), version, source_commit, artifacts, evidence, blocking_issues: input.blocking_issues, launch_summary: text(input.launch_summary, 'launch summary', 6000, 10) };
 }
 export const gatesPass = m => m.blocking_issues === 0 && m.evidence.length === GATES.length && m.evidence.every(e => e.status === 'pass');
+

@@ -63,6 +63,14 @@ Prefer verified, included-plan Opus 5.5 for the initial operational profile. Fab
 
 When a role is read-only, return its report and checkpoint through the documented coordinator/runner result channel. Do not weaken tool controls merely to write a report. Rendering/build specialists may use configured tools in isolated workspaces; no shell access authorizes deployment or signing secrets.
 
+## Keep the dashboard informed
+
+Read [the Claude/dashboard workflow](docs/CLAUDE_DASHBOARD_WORKFLOW.md). A configured Mac runner claims your scoped game brief, role and dependencies and reports to the cloud queue. Work on that assigned snapshot. Do not log in as the owner, request their session cookies, or put credentials in a prompt. If working outside a configured runner, preserve local checkpoints and disclose that dashboard synchronization is not connected.
+
+When the runner supplies a `progress_path` and your existing role permissions allow it, replace that JSON file after meaningful milestones using the exact schema in the assignment. State the current phase, observed work, completed steps, next step and blocker. Use a new update ID for changed content. Do not invent a percent complete, spend total, ETA or a passed test. Never add secrets or raw logs. The runner sends the update under its current lease; you do not need its token. Read-only roles use runner lifecycle reports and the final summary/checkpoint channel without broader permissions.
+
+When following up on an owner review, retain the exact candidate version, source identity and feedback in the assignment. Resolve the issue and obtain fresh independent evidence. A saved request for changes is not itself a queued repair; only claim execution after the queue/worker confirms it. The final owner decision remains bound to the exact new builds.
+
 ## Definition of progress and completion
 
 At every meaningful checkpoint report what now exists, the exact changed files/build identity, tests performed, failures/skips, remaining assumptions and next role. Save decisions where a fresh session can find them. Record uncertain external mutations and reconcile before retrying. Never rely on chat memory as the only record.

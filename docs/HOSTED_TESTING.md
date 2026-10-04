@@ -44,3 +44,23 @@ The later dashboard change was checked independently after the framework checkpo
 A temporary Chromium installation subsequently became available. Both full Playwright fixtures (`tests/browser_jobs.mjs` and `tests/dashboard_layout.mjs`) passed with synthetic accounts and operations data. The layout fixture uses the actual role registry and research catalog. It checks department and search filtering, prompt reading, assignment preselection, role-job navigation, mobile menus, route scroll reset, refresh scroll preservation, overflow and console errors. Desktop and mobile agents, overview and sign-in screenshots were visually inspected. See [the design preview](DASHBOARD_DESIGN.md).
 
 The favicon PNG matches the supplied image byte-for-byte. No authentication policy, owner approval requirement, storage schema or external service was added by the redesign. These browser checks are offline fixtures: they do not prove Cloudflare deployment, real account sign-in or worker execution.
+
+
+## White operator workspace and Claude progress — 2026-10-04
+
+The owner requested a white, practical production workspace and a way to see Claude's progress. This revision replaces the promotional dashboard layout, fixes project/candidate/follow-up scoping, and adds leased progress reporting from the Mac runner.
+
+| Check | Observed result | Scope |
+|---|---|---|
+| Native source regression | **168 passed** | Includes eight progress cases and two category/create-with-repository cases. |
+| Python worker regression | **57 passed** | Eleven additional progress lifecycle, permission, file-read, credential and transport checks. |
+| Game-name kickoff | **16 passed** | Existing kickoff behavior with expanded casual-game choices. |
+| Real local workerd | **Passed** | Added progress authorization, idempotency, restart persistence and stale-lease rejection. |
+| Existing operations browser fixture | **Passed** | Actual UI assignment/retry/cancel controls against isolated response fixtures. |
+| Responsive layout fixture | **Passed** | All workspace routes at 1440px and 390px, white canvas, agent filters/prompts, preserved scroll, visible updates and no page/console errors. |
+| Native operator browser workflows | **Passed** | Chromium drives the real handler and local SQLite: repository-at-create, one initial pipeline, filters, scoped templates/candidates/build links, review-gate rejection, exact feedback follow-up, worker progress and automatic idle polling, CSRF/CSP and database reconstruction. |
+| Prompt registry | **29 contracts passed** | Shared instructions and generated definitions remain consistent. |
+
+The browser/operator records and identity provider are synthetic. No live Claude process, real device test, production sign-in, Cloudflare deployment, email notification or store submission formed part of these local checks. The UI does not treat progress as independently verified completion. Server history is bounded to 40 events per job and 400 across the studio; private checkpoints retain long-term context.
+
+CI now runs the full three browser fixtures with pinned Playwright in addition to static checks and the native/workerd tests. A workflow result and deployment acceptance are separate. See [Claude/dashboard workflow](CLAUDE_DASHBOARD_WORKFLOW.md) for the initial Mac/backend connection and owner tracking paths.

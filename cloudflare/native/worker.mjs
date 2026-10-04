@@ -90,7 +90,7 @@ export function createHandler(providerFetch = (...args) => fetch(...args)) {
         const workerId = authenticatedWorker(env, request.headers.get('Authorization'));
         const workerKey = await sha256(workerId + ':worker');
         await call(env, 'rate', { key: workerKey, limit: 120 });
-        const operations = { '/api/worker/heartbeat': 'worker_heartbeat', '/api/worker/claim': 'worker_claim', '/api/worker/renew': 'worker_renew', '/api/worker/complete': 'worker_complete', '/api/worker/fail': 'worker_fail', '/api/worker/candidate': 'worker_candidate' };
+        const operations = { '/api/worker/heartbeat': 'worker_heartbeat', '/api/worker/claim': 'worker_claim', '/api/worker/renew': 'worker_renew', '/api/worker/progress': 'worker_progress', '/api/worker/complete': 'worker_complete', '/api/worker/fail': 'worker_fail', '/api/worker/candidate': 'worker_candidate' };
         requireThat(Object.hasOwn(operations, path), 'Unknown worker endpoint', 404);
         const body = await readJSON(request);
         if (path === '/api/worker/candidate') { const manifest = manifestInput(body.manifest || {}, env); body.manifest = manifest; body.hash = await sha256(canonical(manifest)); }

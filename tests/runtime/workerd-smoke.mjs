@@ -139,6 +139,14 @@ try {
   assert.equal(renewed.lease.fence, claimed.lease.fence);
   assert.ok(Date.parse(renewed.lease.expires_at) >= Date.parse(claimed.lease.expires_at));
   await expectJSON(await workerPost('/api/worker/renew', leaseIdentity(claimed), 'runtime-two'), 409, 'reject lease used by another worker');
+  const update = { update_id: 'runtime-progress-1', phase: 'validating', summary: 'Synthetic runtime progress; checking queue persistence.', completed: ['Fixture claimed'], next_step: 'Restart disposable runtime.', blocker: '' };
+  const progressBody = { ...leaseIdentity(claimed), progress: update };
+  const acceptedProgress = await expectJSON(await workerPost('/api/worker/progress', progressBody), 200, 'record leased progress');
+  assert.equal(acceptedProgress.progress.worker_id, 'runtime-one');
+  assert.ok(Date.parse(acceptedProgress.progress.reported_at));
+  assert.equal((await expectJSON(await workerPost('/api/worker/progress', progressBody), 200, 'idempotent progress')).idempotent, true);
+  await expectJSON(await workerPost('/api/worker/progress', progressBody, 'runtime-two'), 409, 'another worker cannot post progress');
+  await expectJSON(await post('/api/worker/progress', progressBody, cookie, state.user.csrf), 401, 'owner session is not a worker identity');
   console.log('PASS: worker auth boundary, heartbeat, idempotent enqueue, dependency-aware claim, repository exclusion and renewal');
   await runtime.dispose(); runtime = null;
   await start();
@@ -149,11 +157,17 @@ try {
   assert.equal(reopened.jobs.find(j => j.id === first.job.id).status, 'running');
   assert.equal(reopened.jobs.find(j => j.id === first.job.id).fence, claimed.lease.fence);
   assert.deepEqual(reopened.workers.map(w => w.id).sort(), Object.keys(workerTokens).sort());
+  assert.equal(reopened.job_queue.progress_updates, true);
+  assert.equal(reopened.jobs.find(j => j.id === first.job.id).progress.summary, update.summary);
+  assert.equal(reopened.jobs.find(j => j.id === first.job.id).progress_history.length, 1);
+
   for (const forbidden of [...Object.values(workerTokens), claimed.lease.token, 'input_fingerprint']) assert.ok(!JSON.stringify(reopened).includes(forbidden), 'owner state exposed worker authentication or lease secrets');
   const afterRestart = await expectJSON(await workerPost('/api/worker/renew', leaseIdentity(claimed)), 200, 'persisted lease remains renewable after restart');
   assert.equal(afterRestart.lease.fence, claimed.lease.fence);
   await expectJSON(await post('/api/jobs/' + first.job.id + '/cancel', {}, cookie, reopened.user.csrf), 200, 'cancel running fixture to invalidate its lease');
   await expectJSON(await workerPost('/api/worker/complete', { ...leaseIdentity(claimed), result: reportedResult() }), 409, 'cancelled pre-restart claim cannot complete');
+  await expectJSON(await workerPost('/api/worker/progress', progressBody), 409, 'cancelled claim cannot replay progress');
+
   await expectJSON(await post('/api/jobs/' + first.job.id + '/retry', {}, cookie, reopened.user.csrf), 200, 'retry cancelled fixture');
   const replacement = await expectJSON(await workerPost('/api/worker/claim', {}, 'runtime-two'), 200, 'new worker reclaims cancelled fixture');
   assert.equal(replacement.job.id, first.job.id);
@@ -183,7 +197,7 @@ try {
   assert.ok(final.projects.every(p => p.stage !== 'live'));
   assert.ok(final.events.some(e => e.event === 'job_completed'));
   console.log('PASS: sessions/projects/workers/jobs/leases survive restart; stale and cross-worker fences rejected; structured results unlock dependencies without release approval');
-  console.log('All workerd login, durable queue and restart checks passed. Google responses and job results were synthetic; no live worker, game test, production login or publication is claimed.');
+  console.log('All workerd login, durable queue, leased progress and restart checks passed. Google responses and job results were synthetic; no live worker, game test, production login or publication is claimed.');
 } finally {
   if (runtime) await runtime.dispose();
   await fs.rm(temp, { recursive: true, force: true });

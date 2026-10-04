@@ -1,28 +1,46 @@
-# Studio dashboard design
+# Studio dashboard
 
-The dashboard uses one visual system across production, agents, research, release review, account access and sign-in. The redesign keeps the existing native Cloudflare application and its authentication/approval boundaries.
+The dashboard is the owner's production workspace. It answers four questions: which games are moving, what is blocking work, what the agents last reported, and which exact builds need a decision. Repository documentation and reference research support those tasks.
 
-![Agent directory in the studio dashboard](images/dashboard-agents.png)
+![White studio overview](images/dashboard-overview.png)
 
-Preview generated from the browser fixture: project, job, worker and owner records are synthetic. The 29 role contracts and 500-reference catalog are the repository data. This is not a screenshot of production activity.
+Preview from an offline browser fixture. Games, workers and activity are synthetic test records; the role/reference catalog is repository data. This is not a production activity screenshot.
 
-## Identity
+## Visual direction
 
-The owner-supplied 60 × 60 PNG is stored unchanged at `cloudflare/public/assets/studio-mascot.png`. Its SHA-256 is `fb89b2cb3bc816419f8c86b82fc9750a9763087aaf9ece81acc077b0ca6bb239`. Dashboard, login and privacy pages reference it as their PNG favicon. The sidebar and studio headers reuse it at or below its native size. No new third-party image or font service is loaded.
+Use white backgrounds, charcoal text, subtle neutral separators, small corner radii and one restrained blue interaction color. Status colors have visible labels. Use system Helvetica/Arial fonts without external font requests. Tables, compact lists and clear headings carry the hierarchy. Avoid promotional heroes, oversized statistics, decorative gradients, fictional trend charts and large collections of identical cards.
 
-Dark navy surfaces, warm cream text, honey-gold actions and teal status accents distinguish hierarchy and state. Visible labels accompany status colors. CSS includes keyboard focus, responsive layouts, and reduced-motion handling.
+The supplied 60 × 60 mascot stays unchanged at `cloudflare/public/assets/studio-mascot.png`, SHA-256 `fb89b2cb3bc816419f8c86b82fc9750a9763087aaf9ece81acc077b0ca6bb239`. It is the favicon and a small studio identifier, not a repeated illustration.
 
-## Working views
+## Information architecture
 
-- **Overview:** actual project and job counts, production stages, recent projects, attention items, worker contact and research entry.
-- **Agent roles:** the full registry organized into eight departments, searchable responsibilities, reporting relationships, complete prompts, scoped assignment and role-filtered jobs.
-- **Operations:** the existing dependency-aware assignment, retry, cancellation and evidence controls.
-- **Research and reviews:** the existing catalogs and exact-build review workflow, restyled consistently.
+| Workspace | Question it answers | Useful action |
+|---|---|---|
+| Overview | What needs attention, what is moving, and what changed? | Open the specific candidate, failed assignment or game. |
+| Games | Where is each game in production? | Search/filter the portfolio, open its workspace, or create a game with its repository. |
+| Game workspace | What is the brief, work state, latest build and next step for this game? | Link source, queue the initial pipeline once, inspect updates, open builds and review evidence. |
+| Builds & reviews | Which exact versions can I test or review? | Filter candidates; inspect Android/iOS artifacts, source identity and evidence; give an exact-build decision. |
+| Work queue | What is assigned, executing, blocked or finished? | Filter by game/role/status; inspect updates/results; queue a scoped assignment, retry eligible work or cancel it. |
+| Workers | Which configured Macs have checked in? | Inspect last contact, supported roles and claimed assignments; open the setup guide. |
+| Agents | Which role owns a responsibility? | Search departments and contracts; read the full prompt or assign a role. |
+| Updates | Which released games have an update target? | Open the game or assign maintenance work. |
+| Reference library / publisher research | What can inform an original game? | Inspect sources, shortlist and draft a distinct concept. |
+| Handbook / activity / settings | How does the studio operate, what happened, and what is connected? | Read contracts, inspect recorded events and access account/export controls. |
 
-Empty workspaces remain empty. Role definitions are not presented as connected workers, and heartbeat freshness does not claim completed work. Creating an assignment queues it; it does not approve a release.
+## State and control rules
 
-## Verification
+- Project creation can include an existing private-repository URL. It creates a record; it does not create a remote repository or start Claude.
+- Initial production uses the existing durable, idempotent pipeline. Once present, the game links to that work instead of offering a misleading restart.
+- An awaiting-review candidate can still have incomplete gates. Show exact reported evidence and retain the backend's approval checks.
+- Agent progress is a worker-reported update with a timestamp and assignment identity. It cannot mark evidence as independently verified or approve a release.
+- Heartbeat freshness means recent contact, not available model allowance or successful device/tool checks.
+- Historical role tasks are reported milestones, separate from executing queue jobs.
+- Review feedback and any follow-up assignment remain explicit records. A request for changes alone is not a running repair.
+- Do not display estimated costs, model utilization, fabricated completion percentages or scheduled ETAs without a supported source.
+- Empty, unavailable and stale states must be distinguishable. Filters need visible state and a clear way to reset.
 
-Run `npm test` for native routing, authentication, release and queue checks. `tests/native/branding.test.mjs` checks public PNG delivery, icon links and preservation of protected routes. Run `node tests/browser_jobs.mjs --static` and `node tests/dashboard_layout.mjs --static` for offline UI contracts. Both full browser fixtures use Playwright and a separately installed Chromium; pass `CHROMIUM_PATH` if needed. Set `BROWSER_OUTPUT` to a temporary folder when refreshing the layout previews. The redesign fixture checks department/search filtering, prompt reading, assignment selection, role-job navigation, route scroll reset, refresh scroll preservation, desktop/mobile overflow and console errors. Fixture projects and screenshots are synthetic test data, not production activity.
+## Verification and deployment
 
-Deploy through the existing Cloudflare setup in `HOSTED_DASHBOARD.md`. A source push or a passing GitHub workflow alone is not evidence of a production deployment. Preserve the storage binding, object identity, Google configuration and release records.
+Run `npm test`, `node tests/browser_jobs.mjs --static` and `node tests/dashboard_layout.mjs --static`. Full browser fixtures require Playwright and Chromium; `CHROMIUM_PATH` selects the executable and `BROWSER_OUTPUT` saves test previews. Fixtures use synthetic owner/project/worker/activity data and actual role/reference catalog entries. They are not screenshots of production activity.
+
+Follow [hosted setup](HOSTED_DASHBOARD.md) for deployment. Preserve the Durable Object identity, migration, Google account policy and release records. A source push or a passing workflow is not evidence that the Cloudflare hostname serves that revision. See [verification history](HOSTED_TESTING.md) for executed checks.
