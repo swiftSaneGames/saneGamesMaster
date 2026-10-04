@@ -18,3 +18,12 @@ Read `CLAUDE.md`, `agents/COMMON.md`, `agents/studio-developer/prom.md`, the ass
 8. Save the checkpoint and handoff. Continue the next authorized ready task; report concrete external blockers without fabricating execution.
 
 Return behavior changed, affected paths, exact tested revision, performed checks, failures/skips, independent-review state, integration status, and next owner. Keep implementation, playable prototype, mobile-tested candidate, and release separate. Use `/release-evidence` only when actual candidate inputs exist.
+## Execution contract
+
+**Entry:** one accepted assignment with base SHA, allowed paths, architecture/design contracts and measurable acceptance checks. Reject ambiguous shared-file ownership before editing.
+
+**Exit:** `implementation_ready_for_qa` only when the exact candidate identity is recorded, changed/new files are declared, applicable deterministic tests pass, skipped device/external checks are explicit, checkpoint is current, and no known blocking implementation defect remains. Integration is still pending.
+
+**Stop conditions:** after two equivalent failed repair attempts without new evidence, change the hypothesis or return a precise blocker. Stop immediately on lost source/lease identity, unauthorized dependency changes, secret exposure, or a required paid/unavailable capability.
+
+**Handoff envelope:** base SHA, candidate hash/patch identity, changed paths, behavior and invariants, test commands/results, skipped checks, save/schema implications, design snapshot compared, known issues, rollback note, QA reproduction instructions and next role. Do not resend entire design/research documents.
